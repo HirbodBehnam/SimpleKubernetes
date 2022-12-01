@@ -1,6 +1,7 @@
 package master
 
 import (
+	"WLF/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net"
 )
@@ -9,7 +10,8 @@ import (
 type Server struct {
 	// Users which can access this master
 	Users map[string]string
-	// List of all slaves
+	// List of all slave addresses
+	Salves *util.SlaveList
 }
 
 // RunServer will run a server for client connections and another one
@@ -35,6 +37,7 @@ func (s *Server) runClientServer(listenAddress string) {
 			continue
 		}
 		// Handle this client
+		log.WithField("address", client.RemoteAddr()).Debug("new client connection")
 		s.handleClient(client)
 	}
 }

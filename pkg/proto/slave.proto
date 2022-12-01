@@ -1,0 +1,49 @@
+syntax = "proto3";
+package proto;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "WLF/pkg/proto";
+
+message MasterToSlaveRequest {
+  optional google.protobuf.Empty getStatus = 1;
+  optional SlaveJob newJob = 2;
+  optional GetJobLogsRequest getJobLogs = 3;
+}
+
+message SlaveToMasterRequest {
+  optional SlaveHello hello = 1;
+  optional JobFinishedResult jobFinished = 2;
+}
+
+message SlaveHello {
+  // How should master connect to slave
+  string connect_address = 1;
+}
+
+message SlaveJob {
+  // The command to run on node
+  string cmd = 1;
+  // The executable to send to node
+  optional bytes program = 2;
+}
+
+message GetJobLogsRequest {
+  string job_id = 1;
+}
+
+message JobCreatedResult {
+  string job_id = 1;
+}
+
+message JobFinishedResult {
+  uint32 slave_id = 1;
+  string job_id = 2;
+  optional sint32 exit_code = 3;
+  optional string run_error = 4;
+}
+
+// Sent from master to slave after SlaveHello
+message SlaveIDAssigned {
+  uint32 slave_id = 1;
+}
