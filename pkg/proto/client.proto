@@ -1,0 +1,23 @@
+syntax = "proto3";
+package proto;
+option go_package = "WLF/pkg/proto";
+
+// Clients authorization for accessing master
+message ClientAuthorization {
+  string username = 1;
+  string password = 2;
+}
+
+// A job to send to a slave
+message Job {
+  // The command to run on node
+  string cmd = 1;
+  // The executable to send to node
+  optional bytes program = 2;
+  // Needed free memory to run this application
+  optional uint64 needed_memory = 3;
+  // Needed cores to run this application
+  optional uint64 needed_cores = 4;
+  // Needed HDD space to run this application
+  optional uint64 needed_space = 5;
+}
