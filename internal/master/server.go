@@ -38,11 +38,26 @@ func (s *Server) runClientServer(listenAddress string) {
 		}
 		// Handle this client
 		log.WithField("address", client.RemoteAddr()).Debug("new client connection")
-		s.handleClient(client)
+		go s.handleClient(client)
 	}
 }
 
 // Runs the server which slaves will connect to it
 func (s *Server) runSlaveServer(listenAddress string) {
-
+	// Listen for client
+	l, err := net.Listen("tcp", listenAddress)
+	if err != nil {
+		log.WithError(err).Fatalln("cannot listen for slave's server")
+	}
+	// Wait for connections
+	for {
+		client, err := l.Accept()
+		if err != nil {
+			log.WithError(err).Error("cannot accept slave connection")
+			continue
+		}
+		// Handle this client
+		log.WithField("address", client.RemoteAddr()).Debug("new slave connection")
+		go s.handleSlaveHello(client)
+	}
 }

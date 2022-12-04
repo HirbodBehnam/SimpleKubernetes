@@ -21,6 +21,12 @@ message SlaveHello {
   string connect_address = 1;
 }
 
+// Message sent to slave after SlaveHello
+message SlaveHelloMasterAck {
+  // Slave ID
+  uint32 id = 1;
+}
+
 message SlaveJob {
   // The command to run on node
   string cmd = 1;

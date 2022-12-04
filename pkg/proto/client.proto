@@ -13,13 +13,6 @@ message ClientAuthorization {
 
 // The request which user has
 message ClientRequest {
-  //oneof request {
-  //  NewJobMessage newJob = 1;
-  //  google.protobuf.Empty jobList = 2;
-  //  JobLogRequestMessage jobLog = 3;
-  //  google.protobuf.Empty nodeList = 4;
-  //  google.protobuf.Empty nodeTop = 5;
-  //}
   optional NewJobMessage newJob = 1;
   optional google.protobuf.Empty jobList = 2;
   optional JobLogRequestMessage jobLog = 3;
