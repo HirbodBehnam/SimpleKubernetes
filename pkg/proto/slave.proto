@@ -6,14 +6,18 @@ import "google/protobuf/empty.proto";
 option go_package = "WLF/pkg/proto";
 
 message MasterToSlaveRequest {
-  optional google.protobuf.Empty getStatus = 1;
-  optional SlaveJob newJob = 2;
-  optional GetJobLogsRequest getJobLogs = 3;
+  oneof request {
+    google.protobuf.Empty getStatus = 1;
+    SlaveJob newJob = 2;
+    GetJobLogsRequest getJobLogs = 3;
+  }
 }
 
 message SlaveToMasterRequest {
-  optional SlaveHello hello = 1;
-  optional JobFinishedResult jobFinished = 2;
+  oneof request {
+    SlaveHello hello = 1;
+    JobFinishedResult jobFinished = 2;
+  }
 }
 
 message SlaveHello {

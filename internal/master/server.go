@@ -58,6 +58,6 @@ func (s *Server) runSlaveServer(listenAddress string) {
 		}
 		// Handle this client
 		log.WithField("address", client.RemoteAddr()).Debug("new slave connection")
-		go s.handleSlaveHello(client)
+		go s.handleSlave(client)
 	}
 }

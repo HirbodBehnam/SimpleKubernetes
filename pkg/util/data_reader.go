@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/binary"
 	"github.com/go-faster/errors"
+	protobuf "github.com/golang/protobuf/proto"
 	"io"
 )
 
@@ -48,6 +49,32 @@ func WriteBigBuffer(w io.Writer, buffer []byte) error {
 	}
 	if n != len(buffer) {
 		return errors.New("short write on buffer")
+	}
+	return nil
+}
+
+// ReadProtobuf will read a protobuf message from a stream using ReadBigBuffer
+func ReadProtobuf(r io.Reader, message protobuf.Message) error {
+	buffer, err := ReadBigBuffer(r)
+	if err != nil {
+		return errors.Wrap(err, "cannot read data")
+	}
+	err = protobuf.Unmarshal(buffer, message)
+	if err != nil {
+		return errors.Wrap(err, "cannot parse proto")
+	}
+	return nil
+}
+
+// WriteProtobuf will write a protobuf message in a writer using WriteBigBuffer
+func WriteProtobuf(w io.Writer, message protobuf.Message) error {
+	data, err := protobuf.Marshal(message)
+	if err != nil {
+		return errors.Wrap(err, "cannot marshal message")
+	}
+	err = WriteBigBuffer(w, data)
+	if err != nil {
+		return errors.Wrap(err, "cannot write data")
 	}
 	return nil
 }

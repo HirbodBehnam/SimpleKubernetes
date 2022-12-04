@@ -3,7 +3,6 @@ package master
 import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
-	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"net"
 	"sync/atomic"
@@ -17,39 +16,33 @@ func getNextSlaveID() uint32 {
 	return slaveCounter.Add(1)
 }
 
-// handleSlaveHello will add the slave to our pool
-func (s *Server) handleSlaveHello(conn net.Conn) {
+// handleSlave will handle a slave connection
+func (s *Server) handleSlave(conn net.Conn) {
 	defer conn.Close()
-	// Get the hello message
-	data, err := util.ReadBigBuffer(conn)
-	if err != nil {
-		log.WithError(err).Error("cannot read slave hello")
-		return
-	}
 	// Parse
-	dataParsed := new(proto.SlaveToMasterRequest)
-	err = json.Unmarshal(data, dataParsed)
+	var request proto.SlaveToMasterRequest
+	err := util.ReadProtobuf(conn, &request)
 	if err != nil {
-		log.WithError(err).Error("cannot parse slave hello")
+		log.WithError(err).Error("cannot read the first message of slave")
 		return
 	}
 	// Send the server ack
-	if dataParsed.Hello != nil {
+	switch data := request.Request.(type) {
+	case *proto.SlaveToMasterRequest_Hello:
 		slaveID := getNextSlaveID()
-		data, _ = json.Marshal(&proto.SlaveHelloMasterAck{
+		err = util.WriteProtobuf(conn, &proto.SlaveHelloMasterAck{
 			Id: slaveID,
 		})
-		err = util.WriteBigBuffer(conn, data)
 		if err != nil {
 			log.WithError(err).Error("cannot write server ack for slave")
 			return
 		}
 		// Done. Add to slaves
 		s.Salves.AddSlave(util.SlaveListElement{
-			Address: dataParsed.Hello.ConnectAddress,
+			Address: data.Hello.ConnectAddress,
 			Id:      slaveID,
 			Dead:    false,
 		})
-		return
+	case *proto.SlaveToMasterRequest_JobFinished:
 	}
 }

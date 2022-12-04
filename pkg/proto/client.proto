@@ -13,11 +13,13 @@ message ClientAuthorization {
 
 // The request which user has
 message ClientRequest {
-  optional NewJobMessage newJob = 1;
-  optional google.protobuf.Empty jobList = 2;
-  optional JobLogRequestMessage jobLog = 3;
-  optional google.protobuf.Empty nodeList = 4;
-  optional google.protobuf.Empty nodeTop = 5;
+  oneof request {
+    NewJobMessage newJob = 1;
+    google.protobuf.Empty jobList = 2;
+    JobLogRequestMessage jobLog = 3;
+    google.protobuf.Empty nodeList = 4;
+    google.protobuf.Empty nodeTop = 5;
+  }
 }
 
 // A job to send to a slave
@@ -41,4 +43,16 @@ message JobLogRequestMessage {
   // Show live logs?
   bool live = 3;
   uint32 line_count = 4;
+}
+
+// Status of a slave to send to client with node list
+message SlaveStatus {
+  uint32 id = 1;
+  string address = 2;
+  bool dead = 3;
+}
+
+// An array of SlaveStatus
+message SlavesStatus {
+  repeated SlaveStatus status = 1;
 }
