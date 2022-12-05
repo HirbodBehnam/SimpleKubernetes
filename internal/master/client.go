@@ -3,7 +3,6 @@ package master
 import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
-	protobuf "github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"net"
 )
@@ -43,27 +42,29 @@ func (s *Server) handleClient(conn net.Conn) {
 
 // authorizeClient will read the first message from stream and authorize the user
 func (s *Server) authorizeClient(conn net.Conn) bool {
-	// Read the message
-	data, err := util.ReadBigBuffer(conn)
-	if err != nil {
-		log.WithError(err).Warn("cannot read buffer in clients first message")
-		return false
-	}
-	// Parse it
 	var auth proto.ClientAuthorization
-	err = protobuf.Unmarshal(data, &auth)
+	err := util.ReadProtobuf(conn, &auth)
 	if err != nil {
-		log.WithError(err).Warn("cannot parse authorization packet")
+		log.WithError(err).Error("cannot read client hello")
 		return false
 	}
 	// Validate
 	pass, exists := s.Users[auth.Username]
+	var credOk bool
 	if exists && pass == auth.Password {
 		log.WithField("cred", &auth).Info("user logged in")
-		return true
+		credOk = true
+	} else {
+		log.WithField("cred", &auth).Warn("invalid creds")
+		credOk = false
 	}
-	log.WithField("cred", &auth).Warn("invalid creds")
-	return false
+	// Send result
+	err = util.WriteProtobuf(conn, &proto.ClientAuthorizationResult{Ok: credOk})
+	if err != nil {
+		log.WithError(err).Error("cannot write back auth result")
+		return false
+	}
+	return credOk
 }
 
 func (s *Server) dispatchJob(job *proto.NewJobMessage) error {

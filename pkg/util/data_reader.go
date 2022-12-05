@@ -7,8 +7,8 @@ import (
 	"io"
 )
 
-// ReadBigBuffer reads a very big buffer from a reader
-func ReadBigBuffer(r io.Reader) ([]byte, error) {
+// readBigBuffer reads a very big buffer from a reader
+func readBigBuffer(r io.Reader) ([]byte, error) {
 	// Get size
 	var sizeBuffer [4]byte
 	n, err := r.Read(sizeBuffer[:])
@@ -30,8 +30,8 @@ func ReadBigBuffer(r io.Reader) ([]byte, error) {
 	return buffer, nil
 }
 
-// WriteBigBuffer writes a very big buffer into a writer
-func WriteBigBuffer(w io.Writer, buffer []byte) error {
+// writeBigBuffer writes a very big buffer into a writer
+func writeBigBuffer(w io.Writer, buffer []byte) error {
 	// Send the size
 	var sizeBuffer [4]byte
 	binary.BigEndian.PutUint32(sizeBuffer[:], uint32(len(buffer)))
@@ -53,9 +53,9 @@ func WriteBigBuffer(w io.Writer, buffer []byte) error {
 	return nil
 }
 
-// ReadProtobuf will read a protobuf message from a stream using ReadBigBuffer
+// ReadProtobuf will read a protobuf message from a stream using readBigBuffer
 func ReadProtobuf(r io.Reader, message protobuf.Message) error {
-	buffer, err := ReadBigBuffer(r)
+	buffer, err := readBigBuffer(r)
 	if err != nil {
 		return errors.Wrap(err, "cannot read data")
 	}
@@ -72,7 +72,7 @@ func WriteProtobuf(w io.Writer, message protobuf.Message) error {
 	if err != nil {
 		return errors.Wrap(err, "cannot marshal message")
 	}
-	err = WriteBigBuffer(w, data)
+	err = writeBigBuffer(w, data)
 	if err != nil {
 		return errors.Wrap(err, "cannot write data")
 	}

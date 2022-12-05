@@ -11,6 +11,11 @@ message ClientAuthorization {
   string password = 2;
 }
 
+// True or false if authorization is ok
+message ClientAuthorizationResult {
+  bool ok = 1;
+}
+
 // The request which user has
 message ClientRequest {
   oneof request {
