@@ -1,6 +1,8 @@
 package main
 
 import (
+	"WLF/internal/master"
+	"WLF/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"math/rand"
@@ -9,6 +11,7 @@ import (
 )
 
 func main() {
+	log.SetLevel(log.TraceLevel)
 	rand.Seed(time.Now().Unix())
 	app := &cli.App{
 		Name:        "WLF Master",
@@ -37,11 +40,9 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:  "run",
-				Usage: "run the master",
-				Action: func(ctx *cli.Context) error {
-					return nil
-				},
+				Name:   "run",
+				Usage:  "run the master",
+				Action: runMaster,
 			},
 		},
 	}
@@ -49,4 +50,15 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func runMaster(ctx *cli.Context) error {
+	server := master.Server{
+		Users: map[string]string{
+			ctx.String("username"): ctx.String("password"),
+		},
+		Salves: util.NewSlaveList(),
+	}
+	server.RunServer(ctx.String("client-listen-address"), ctx.String("slave-listen-address"))
+	return nil
 }

@@ -24,6 +24,7 @@ func (s *Server) RunServer(clientListen, slaveListen string) {
 
 // Runs the server which clients connect to and batch the jobs in it
 func (s *Server) runClientServer(listenAddress string) {
+	log.WithField("address", listenAddress).Debug("listening for client")
 	// Listen for client
 	l, err := net.Listen("tcp", listenAddress)
 	if err != nil {
@@ -44,6 +45,7 @@ func (s *Server) runClientServer(listenAddress string) {
 
 // Runs the server which slaves will connect to it
 func (s *Server) runSlaveServer(listenAddress string) {
+	log.WithField("address", listenAddress).Debug("listening for slave")
 	// Listen for client
 	l, err := net.Listen("tcp", listenAddress)
 	if err != nil {
