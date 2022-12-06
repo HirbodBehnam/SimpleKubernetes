@@ -1,6 +1,7 @@
 package main
 
 import (
+	"WLF/internal/slave"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"math/rand"
@@ -35,7 +36,11 @@ func main() {
 				Name:  "run",
 				Usage: "run the slave",
 				Action: func(ctx *cli.Context) error {
-					return nil
+					s := slave.Slave{
+						MasterAddress: ctx.String("master-address"),
+						MaxTasks:      ctx.Int("max-tasks"),
+					}
+					return s.RunSlave(ctx.String("listen-address"))
 				},
 			},
 		},

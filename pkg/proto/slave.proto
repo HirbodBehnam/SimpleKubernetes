@@ -66,6 +66,6 @@ message SlaveTop {
   uint32 job_limit = 1;
   uint32 running_jobs = 2;
   uint32 cores = 3;
-  uint32 free_memory = 4;
-  uint32 free_disk = 5;
+  uint64 free_memory = 4;
+  uint64 free_disk = 5;
 }
