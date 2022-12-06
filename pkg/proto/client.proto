@@ -2,6 +2,7 @@ syntax = "proto3";
 package proto;
 
 import "google/protobuf/empty.proto";
+import "pkg/proto/slave.proto";
 
 option go_package = "WLF/pkg/proto";
 
@@ -60,4 +61,12 @@ message SlaveStatus {
 // An array of SlaveStatus
 message SlavesStatus {
   repeated SlaveStatus status = 1;
+}
+
+// Result of top command on slaves
+message SlavesTop {
+  // Both slave_ids and slave_tops must have the same size.
+  // Same index in slave_id must be for same index in slave_top.
+  repeated uint32 slave_ids = 1;
+  repeated SlaveTop slave_tops = 2;
 }

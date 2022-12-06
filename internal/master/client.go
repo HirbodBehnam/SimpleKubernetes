@@ -29,13 +29,13 @@ func (s *Server) handleClient(conn net.Conn) {
 		}
 		return
 	case *proto.ClientRequest_JobList: // Get status of all nodes
+	case *proto.ClientRequest_JobLog:
+	case *proto.ClientRequest_NodeList:
 		err = util.WriteProtobuf(conn, s.getNodeStatus())
 		if err != nil {
 			log.WithError(err).Warn("cannot write node list result")
 		}
 		return
-	case *proto.ClientRequest_JobLog:
-	case *proto.ClientRequest_NodeList:
 	case *proto.ClientRequest_NodeTop:
 	}
 }

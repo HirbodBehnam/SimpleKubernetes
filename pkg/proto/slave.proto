@@ -49,11 +49,22 @@ message JobCreatedResult {
 message JobFinishedResult {
   uint32 slave_id = 1;
   string job_id = 2;
-  optional sint32 exit_code = 3;
-  optional string run_error = 4;
+  oneof status {
+    sint32 exit_code = 3;
+    string run_error = 4;
+  }
 }
 
 // Sent from master to slave after SlaveHello
 message SlaveIDAssigned {
   uint32 slave_id = 1;
+}
+
+// Brief resource status of this node
+message SlaveTop {
+  uint32 job_limit = 1;
+  uint32 running_jobs = 2;
+  uint32 cores = 3;
+  uint32 free_memory = 4;
+  uint32 free_disk = 5;
 }

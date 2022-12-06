@@ -1,6 +1,7 @@
 package main
 
 import (
+	"WLF/internal/client"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"math/rand"
@@ -80,14 +81,14 @@ func main() {
 						Name:  "list",
 						Usage: "get a list of nodes and their status",
 						Action: func(ctx *cli.Context) error {
-							return nil
+							return createMasterAndAuth(ctx).PrintNodeList()
 						},
 					},
 					{
 						Name:  "top",
 						Usage: "get node utilization",
 						Action: func(ctx *cli.Context) error {
-							return nil
+							return createMasterAndAuth(ctx).PrintNodeTop()
 						},
 					},
 				},
@@ -98,4 +99,19 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// createMasterAndAuth will connect to master and send the authorization message
+func createMasterAndAuth(ctx *cli.Context) *client.MasterSettings {
+	m := &client.MasterSettings{
+		Address:  ctx.String("master-address"),
+		Username: ctx.String("username"),
+		Password: ctx.String("password"),
+	}
+	err := m.Auth()
+	if err != nil {
+		m.Close()
+		log.WithError(err).WithField("settings", *m).Fatalln("cannot connect to master")
+	}
+	return m
 }

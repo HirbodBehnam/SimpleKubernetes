@@ -2,7 +2,7 @@ package slave
 
 import (
 	sigar "github.com/cloudfoundry/gosigar"
-	"math/rand"
+	"runtime"
 )
 
 func getFreeMemory() uint64 {
@@ -11,8 +11,8 @@ func getFreeMemory() uint64 {
 	return mem.Free
 }
 
-func getCPUUtilization() uint8 {
-	return uint8(rand.Int()%90) + 1
+func getCPUCores() uint32 {
+	return uint32(runtime.NumCPU())
 }
 
 func getFreeDisk() uint64 {
