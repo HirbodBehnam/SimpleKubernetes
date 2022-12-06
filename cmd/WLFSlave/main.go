@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	log.SetLevel(log.TraceLevel)
 	rand.Seed(time.Now().Unix())
 	app := &cli.App{
 		Name:        "WLF Slave",

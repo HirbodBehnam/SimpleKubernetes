@@ -4,6 +4,7 @@ import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"github.com/olekukonko/tablewriter"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"os"
@@ -65,8 +66,8 @@ func (m *MasterSettings) PrintNodeTop() error {
 			strconv.FormatInt(int64(result.SlaveTops[i].JobLimit), 10),
 			strconv.FormatInt(int64(result.SlaveTops[i].RunningJobs), 10),
 			strconv.FormatInt(int64(result.SlaveTops[i].Cores), 10),
-			strconv.FormatInt(int64(result.SlaveTops[i].FreeMemory), 10),
-			strconv.FormatInt(int64(result.SlaveTops[i].FreeDisk), 10),
+			humanize.IBytes(result.SlaveTops[i].FreeMemory),
+			humanize.IBytes(result.SlaveTops[i].FreeDisk),
 		})
 	}
 	table.Render()

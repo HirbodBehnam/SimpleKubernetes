@@ -17,6 +17,6 @@ func getCPUCores() uint32 {
 
 func getFreeDisk() uint64 {
 	disk := sigar.FileSystemUsage{}
-	_ = disk.Get(".")
-	return disk.Free
+	_ = disk.Get("C://")
+	return disk.Free * 1024
 }

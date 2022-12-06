@@ -27,6 +27,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 			log.WithError(err).Warn("cannot send pong to client")
 			return
 		}
+		log.WithField("remote", conn.RemoteAddr()).Debug("sent pong")
 	case *proto.MasterToSlaveRequest_GetTop:
 		// Get utilization of system
 		err = util.WriteProtobuf(conn, &proto.SlaveTop{
@@ -40,6 +41,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 			log.WithError(err).Warn("cannot send pong to client")
 			return
 		}
+		log.WithField("remote", conn.RemoteAddr()).Debug("sent top")
 	case *proto.MasterToSlaveRequest_NewJob:
 		_ = req
 	case *proto.MasterToSlaveRequest_GetJobLogs:

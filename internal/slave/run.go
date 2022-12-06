@@ -18,16 +18,18 @@ type Slave struct {
 // RunSlave is the entry point of the slave
 func (s *Slave) RunSlave(listenAddress string) error {
 	// At first try to listen on given address
-	log.WithField("address", listenAddress).Debug("starting listening for master...")
 	l, err := net.Listen("tcp", listenAddress)
 	if err != nil {
 		return errors.Wrap(err, "cannot listen on given address")
 	}
+	defer l.Close()
+	log.WithField("address", l.Addr().String()).Debug("started listening for master")
 	// Now connect to master and send the message
 	s.slaveID, err = doMasterHandshake(s.MasterAddress, l.Addr().String())
 	if err != nil {
 		return errors.Wrap(err, "cannot connect to master")
 	}
+	log.WithField("id", s.slaveID).Debug("connected to master and got the ID")
 	// Done. Listen for connections
 	for {
 		conn, err := l.Accept()
