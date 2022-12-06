@@ -7,9 +7,10 @@ option go_package = "WLF/pkg/proto";
 
 message MasterToSlaveRequest {
   oneof request {
-    google.protobuf.Empty getStatus = 1;
-    SlaveJob newJob = 2;
-    GetJobLogsRequest getJobLogs = 3;
+    google.protobuf.Empty ping = 1;
+    google.protobuf.Empty getTop = 2;
+    SlaveJob newJob = 3;
+    GetJobLogsRequest getJobLogs = 4;
   }
 }
 

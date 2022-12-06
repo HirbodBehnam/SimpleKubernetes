@@ -2,6 +2,7 @@ package client
 
 import (
 	"WLF/pkg/proto"
+	"WLF/pkg/util"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -12,7 +13,7 @@ import (
 // PrintNodeList will print all nodes from master
 func (m *MasterSettings) PrintNodeList() error {
 	var result proto.SlavesStatus
-	err := requestWithProtobuf(m.conn, &proto.ClientRequest{
+	err := util.RequestWithProtobuf(m.conn, &proto.ClientRequest{
 		Request: &proto.ClientRequest_NodeList{
 			NodeList: new(emptypb.Empty),
 		},
@@ -42,7 +43,7 @@ func (m *MasterSettings) PrintNodeList() error {
 // PrintNodeTop will print nodes status
 func (m *MasterSettings) PrintNodeTop() error {
 	var result proto.SlavesTop
-	err := requestWithProtobuf(m.conn, &proto.ClientRequest{
+	err := util.RequestWithProtobuf(m.conn, &proto.ClientRequest{
 		Request: &proto.ClientRequest_NodeTop{
 			NodeTop: new(emptypb.Empty),
 		},

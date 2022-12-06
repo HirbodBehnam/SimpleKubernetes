@@ -27,7 +27,7 @@ func (m *MasterSettings) Auth() error {
 		return AlreadyAuthorizedErr
 	}
 	// Connect to master
-	c, err := net.Dial(m.Address, "tcp")
+	c, err := net.Dial("tcp", m.Address)
 	if err != nil {
 		return errors.Wrap(err, "cannot dial master")
 	}

@@ -1,20 +1,20 @@
-package client
+package util
 
 import (
-	"WLF/pkg/util"
 	"github.com/go-faster/errors"
 	protobuf "github.com/golang/protobuf/proto"
 	"io"
 )
 
-func requestWithProtobuf(conn io.ReadWriter, request, response protobuf.Message) error {
+// RequestWithProtobuf will send a protobuffer request into a connection and then expects another one
+func RequestWithProtobuf(conn io.ReadWriter, request, response protobuf.Message) error {
 	// Send request
-	err := util.WriteProtobuf(conn, request)
+	err := WriteProtobuf(conn, request)
 	if err != nil {
 		return errors.Wrap(err, "cannot send request")
 	}
 	// Read result
-	err = util.ReadProtobuf(conn, response)
+	err = ReadProtobuf(conn, response)
 	if err != nil {
 		return errors.Wrap(err, "cannot read response")
 	}

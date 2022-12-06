@@ -23,12 +23,11 @@ func (s *Server) handleClient(conn net.Conn) {
 	// Get type of command
 	switch data := command.Request.(type) {
 	case *proto.ClientRequest_NewJob: // send a job to client
-		// TODO: handle full slaves
 		if err = s.dispatchJob(data.NewJob); err != nil {
 			log.WithError(err).Error("cannot dispatch job")
 		}
 		return
-	case *proto.ClientRequest_JobList: // Get status of all nodes
+	case *proto.ClientRequest_JobList:
 	case *proto.ClientRequest_JobLog:
 	case *proto.ClientRequest_NodeList:
 		err = util.WriteProtobuf(conn, s.getNodeStatus())
@@ -37,6 +36,11 @@ func (s *Server) handleClient(conn net.Conn) {
 		}
 		return
 	case *proto.ClientRequest_NodeTop:
+		err = util.WriteProtobuf(conn, s.getNodeTop())
+		if err != nil {
+			log.WithError(err).Warn("cannot write node top result")
+		}
+		return
 	}
 }
 
@@ -97,6 +101,31 @@ func (s *Server) getNodeStatus() *proto.SlavesStatus {
 			slave.Dead = true
 			result.Status[i].Dead = true
 		}
+	}
+	return result
+}
+
+// getNodeStatus gets all of nodes status
+func (s *Server) getNodeTop() *proto.SlavesTop {
+	slaves := s.Salves.ToList()
+	result := new(proto.SlavesTop)
+	// Check alive status
+	for _, slave := range slaves {
+		// Don't worry about the dead ones
+		if slave.Dead {
+			continue
+		}
+		// Get top of live ones
+		top, err := topSlave(slave.Address)
+		if err != nil {
+			log.WithError(err).WithField("id", slave.Id).WithField("address", slave.Address).
+				Warn("slave died")
+			s.Salves.MakeDead(slave.Address)
+			continue
+		}
+		// Add to result
+		result.SlaveIds = append(result.SlaveIds, slave.Id)
+		result.SlaveTops = append(result.SlaveTops, top)
 	}
 	return result
 }
