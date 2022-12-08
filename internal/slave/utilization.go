@@ -1,6 +1,7 @@
 package slave
 
 import (
+	"WLF/pkg/proto"
 	sigar "github.com/cloudfoundry/gosigar"
 	"runtime"
 )
@@ -17,6 +18,30 @@ func getCPUCores() uint32 {
 
 func getFreeDisk() uint64 {
 	disk := sigar.FileSystemUsage{}
-	_ = disk.Get("C://")
+	_ = disk.Get(".")
 	return disk.Free * 1024
+}
+
+// canJobRun will check if a job can be run on this slave or not based on system utilization
+func canJobRun(job *proto.NewJobMessage) bool {
+	// Check CPU
+	if job.NeededCores != nil {
+		if *job.NeededCores > getCPUCores() {
+			return false
+		}
+	}
+	// Check ram
+	if job.NeededMemory != nil {
+		if *job.NeededMemory > getFreeMemory() {
+			return false
+		}
+	}
+	// Check HDD
+	if job.NeededSpace != nil {
+		if *job.NeededSpace > getFreeDisk() {
+			return false
+		}
+	}
+	// Done
+	return true
 }

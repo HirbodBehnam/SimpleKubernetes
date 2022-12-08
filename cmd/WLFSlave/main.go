@@ -26,7 +26,7 @@ func main() {
 				Value: "127.0.0.1:0",
 				Usage: "Address which master can connect to slave",
 			},
-			&cli.IntFlag{
+			&cli.UintFlag{
 				Name:  "max-tasks",
 				Value: 4,
 				Usage: "Max tasks this slave can serve",
@@ -39,7 +39,7 @@ func main() {
 				Action: func(ctx *cli.Context) error {
 					s := slave.Slave{
 						MasterAddress: ctx.String("master-address"),
-						MaxTasks:      ctx.Int("max-tasks"),
+						MaxTasks:      uint32(ctx.Uint("max-tasks")),
 					}
 					return s.RunSlave(ctx.String("listen-address"))
 				},

@@ -2,6 +2,7 @@ syntax = "proto3";
 package proto;
 
 import "google/protobuf/empty.proto";
+import "pkg/proto/shared.proto";
 
 option go_package = "WLF/pkg/proto";
 
@@ -9,7 +10,7 @@ message MasterToSlaveRequest {
   oneof request {
     google.protobuf.Empty ping = 1;
     google.protobuf.Empty getTop = 2;
-    SlaveJob newJob = 3;
+    NewJobMessage newJob = 3;
     GetJobLogsRequest getJobLogs = 4;
   }
 }
@@ -32,24 +33,22 @@ message SlaveHelloMasterAck {
   uint32 id = 1;
 }
 
-message SlaveJob {
-  // The command to run on node
-  string cmd = 1;
-  // The executable to send to node
-  optional bytes program = 2;
-}
-
 message GetJobLogsRequest {
   string job_id = 1;
 }
 
-message JobCreatedResult {
-  string job_id = 1;
+// Sent after NewJobMessage is sent to client
+message SlaveJobAck {
+  oneof result {
+    UUID job_id = 1; // sent if job was ok!
+    google.protobuf.Empty insufficient_resource = 2; // sent if slave couldn't run the job. The resource which is insufficient is sent in as data
+    google.protobuf.Empty tasks_full = 3; // sent if slave couldn't run the job because all of allowed tasks are full.
+  }
 }
 
 message JobFinishedResult {
   uint32 slave_id = 1;
-  string job_id = 2;
+  UUID job_id = 2;
   oneof status {
     sint32 exit_code = 3;
     string run_error = 4;
@@ -59,13 +58,4 @@ message JobFinishedResult {
 // Sent from master to slave after SlaveHello
 message SlaveIDAssigned {
   uint32 slave_id = 1;
-}
-
-// Brief resource status of this node
-message SlaveTop {
-  uint32 job_limit = 1;
-  uint32 running_jobs = 2;
-  uint32 cores = 3;
-  uint64 free_memory = 4;
-  uint64 free_disk = 5;
 }

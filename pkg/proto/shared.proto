@@ -1,0 +1,45 @@
+syntax = "proto3";
+package proto;
+
+option go_package = "WLF/pkg/proto";
+
+// A job to send to a slave
+message NewJobMessage {
+  // The command to run on node
+  string cmd = 1;
+  // The executable to send to node
+  optional PayloadProgram program = 2;
+  // Needed free memory to run this application
+  optional uint64 needed_memory = 3;
+  // Needed cores to run this application
+  optional uint32 needed_cores = 4;
+  // Needed HDD space to run this application
+  optional uint64 needed_space = 5;
+}
+
+// Jobs might have a program in them
+message PayloadProgram {
+  // Binary of application
+  bytes program_bin = 1;
+  // Name of the program
+  string program_name = 2;
+}
+
+// Brief resource status of a slave
+message SlaveTop {
+  uint32 job_limit = 1;
+  uint32 running_jobs = 2;
+  uint32 cores = 3;
+  uint64 free_memory = 4;
+  uint64 free_disk = 5;
+}
+
+enum Resource {
+  CPU = 0;
+  Memory = 1;
+  Disk = 2;
+}
+
+message UUID {
+  string value = 1;
+}

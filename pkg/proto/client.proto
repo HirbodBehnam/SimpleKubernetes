@@ -2,7 +2,7 @@ syntax = "proto3";
 package proto;
 
 import "google/protobuf/empty.proto";
-import "pkg/proto/slave.proto";
+import "pkg/proto/shared.proto";
 
 option go_package = "WLF/pkg/proto";
 
@@ -26,20 +26,6 @@ message ClientRequest {
     google.protobuf.Empty nodeList = 4;
     google.protobuf.Empty nodeTop = 5;
   }
-}
-
-// A job to send to a slave
-message NewJobMessage {
-  // The command to run on node
-  string cmd = 1;
-  // The executable to send to node
-  optional bytes program = 2;
-  // Needed free memory to run this application
-  optional uint64 needed_memory = 3;
-  // Needed cores to run this application
-  optional uint64 needed_cores = 4;
-  // Needed HDD space to run this application
-  optional uint64 needed_space = 5;
 }
 
 message JobLogRequestMessage {

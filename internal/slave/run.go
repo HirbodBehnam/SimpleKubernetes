@@ -6,17 +6,24 @@ import (
 	"github.com/go-faster/errors"
 	log "github.com/sirupsen/logrus"
 	"net"
+	"sync"
 )
 
 // Slave represents a single slave which can accept jobs from master
 type Slave struct {
-	MasterAddress string
-	MaxTasks      int
-	slaveID       uint32
+	MasterAddress   string
+	MaxTasks        uint32
+	slaveID         uint32
+	runningJobCount uint32
+	// List of all jobs by their ID to job info
+	jobs map[string]*slaveJob
+	// A multipurpose mutex to lock jobs or runningJobCount
+	mu sync.RWMutex
 }
 
 // RunSlave is the entry point of the slave
 func (s *Slave) RunSlave(listenAddress string) error {
+	s.jobs = make(map[string]*slaveJob)
 	// At first try to listen on given address
 	l, err := net.Listen("tcp", listenAddress)
 	if err != nil {
