@@ -4,6 +4,7 @@ import (
 	"WLF/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net"
+	"sync"
 )
 
 // Server of master
@@ -12,11 +13,19 @@ type Server struct {
 	Users map[string]string
 	// List of all slave addresses
 	Salves *util.SlaveList
+	// List of jobs which are running in server
+	jobs map[string]job
+	// List of jobs which are pending (not running inside a slave)
+	pendingJobs map[string]job
+	// A mutex to sync jobs and pendingJobs
+	jobsMutex sync.RWMutex
 }
 
 // RunServer will run a server for client connections and another one
 // for slave connections.
 func (s *Server) RunServer(clientListen, slaveListen string) {
+	s.jobs = make(map[string]job)
+	s.pendingJobs = make(map[string]job)
 	go s.runClientServer(clientListen)
 	go s.runSlaveServer(slaveListen)
 	select {}

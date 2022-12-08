@@ -492,6 +492,195 @@ func (x *SlavesTop) GetSlaveTops() []*SlaveTop {
 	return nil
 }
 
+// JobData is the struct which we sent into JobsList
+type JobData struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id *UUID `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The command of this job
+	Cmd string `protobuf:"bytes,2,opt,name=cmd,proto3" json:"cmd,omitempty"`
+	// Which node ran or is running this job.
+	// If the job hasn't been started, this is zero.
+	NodeId uint32 `protobuf:"varint,3,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	// Types that are assignable to Status:
+	//
+	//	*JobData_Pending
+	//	*JobData_Running
+	//	*JobData_ExitCode
+	//	*JobData_RunError
+	Status isJobData_Status `protobuf_oneof:"status"`
+}
+
+func (x *JobData) Reset() {
+	*x = JobData{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_pkg_proto_client_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *JobData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JobData) ProtoMessage() {}
+
+func (x *JobData) ProtoReflect() protoreflect.Message {
+	mi := &file_pkg_proto_client_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JobData.ProtoReflect.Descriptor instead.
+func (*JobData) Descriptor() ([]byte, []int) {
+	return file_pkg_proto_client_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *JobData) GetId() *UUID {
+	if x != nil {
+		return x.Id
+	}
+	return nil
+}
+
+func (x *JobData) GetCmd() string {
+	if x != nil {
+		return x.Cmd
+	}
+	return ""
+}
+
+func (x *JobData) GetNodeId() uint32 {
+	if x != nil {
+		return x.NodeId
+	}
+	return 0
+}
+
+func (m *JobData) GetStatus() isJobData_Status {
+	if m != nil {
+		return m.Status
+	}
+	return nil
+}
+
+func (x *JobData) GetPending() *emptypb.Empty {
+	if x, ok := x.GetStatus().(*JobData_Pending); ok {
+		return x.Pending
+	}
+	return nil
+}
+
+func (x *JobData) GetRunning() *emptypb.Empty {
+	if x, ok := x.GetStatus().(*JobData_Running); ok {
+		return x.Running
+	}
+	return nil
+}
+
+func (x *JobData) GetExitCode() int32 {
+	if x, ok := x.GetStatus().(*JobData_ExitCode); ok {
+		return x.ExitCode
+	}
+	return 0
+}
+
+func (x *JobData) GetRunError() string {
+	if x, ok := x.GetStatus().(*JobData_RunError); ok {
+		return x.RunError
+	}
+	return ""
+}
+
+type isJobData_Status interface {
+	isJobData_Status()
+}
+
+type JobData_Pending struct {
+	// Job is waiting for a slave to become free
+	Pending *emptypb.Empty `protobuf:"bytes,4,opt,name=pending,proto3,oneof"`
+}
+
+type JobData_Running struct {
+	// Job is running inside node
+	Running *emptypb.Empty `protobuf:"bytes,5,opt,name=running,proto3,oneof"`
+}
+
+type JobData_ExitCode struct {
+	// Job has been exited with given exit code
+	ExitCode int32 `protobuf:"zigzag32,6,opt,name=exit_code,json=exitCode,proto3,oneof"`
+}
+
+type JobData_RunError struct {
+	// We couldn't run the job for following reason
+	RunError string `protobuf:"bytes,7,opt,name=run_error,json=runError,proto3,oneof"`
+}
+
+func (*JobData_Pending) isJobData_Status() {}
+
+func (*JobData_Running) isJobData_Status() {}
+
+func (*JobData_ExitCode) isJobData_Status() {}
+
+func (*JobData_RunError) isJobData_Status() {}
+
+// List of all jobs which master has
+type JobList struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Jobs []*JobData `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
+}
+
+func (x *JobList) Reset() {
+	*x = JobList{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_pkg_proto_client_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *JobList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JobList) ProtoMessage() {}
+
+func (x *JobList) ProtoReflect() protoreflect.Message {
+	mi := &file_pkg_proto_client_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JobList.ProtoReflect.Descriptor instead.
+func (*JobList) Descriptor() ([]byte, []int) {
+	return file_pkg_proto_client_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *JobList) GetJobs() []*JobData {
+	if x != nil {
+		return x.Jobs
+	}
+	return nil
+}
+
 var File_pkg_proto_client_proto protoreflect.FileDescriptor
 
 var file_pkg_proto_client_proto_rawDesc = []byte{
@@ -547,9 +736,28 @@ var file_pkg_proto_client_proto_rawDesc = []byte{
 	0x0d, 0x52, 0x08, 0x73, 0x6c, 0x61, 0x76, 0x65, 0x49, 0x64, 0x73, 0x12, 0x2e, 0x0a, 0x0a, 0x73,
 	0x6c, 0x61, 0x76, 0x65, 0x5f, 0x74, 0x6f, 0x70, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32,
 	0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x53, 0x6c, 0x61, 0x76, 0x65, 0x54, 0x6f, 0x70,
-	0x52, 0x09, 0x73, 0x6c, 0x61, 0x76, 0x65, 0x54, 0x6f, 0x70, 0x73, 0x42, 0x0f, 0x5a, 0x0d, 0x57,
-	0x4c, 0x46, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x09, 0x73, 0x6c, 0x61, 0x76, 0x65, 0x54, 0x6f, 0x70, 0x73, 0x22, 0x81, 0x02, 0x0a, 0x07,
+	0x4a, 0x6f, 0x62, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1b, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x55, 0x55, 0x49, 0x44,
+	0x52, 0x02, 0x69, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x6d, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x63, 0x6d, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x6e, 0x6f, 0x64, 0x65, 0x5f, 0x69,
+	0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x06, 0x6e, 0x6f, 0x64, 0x65, 0x49, 0x64, 0x12,
+	0x32, 0x0a, 0x07, 0x70, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x48, 0x00, 0x52, 0x07, 0x70, 0x65, 0x6e, 0x64,
+	0x69, 0x6e, 0x67, 0x12, 0x32, 0x0a, 0x07, 0x72, 0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x18, 0x05,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x48, 0x00, 0x52, 0x07,
+	0x72, 0x75, 0x6e, 0x6e, 0x69, 0x6e, 0x67, 0x12, 0x1d, 0x0a, 0x09, 0x65, 0x78, 0x69, 0x74, 0x5f,
+	0x63, 0x6f, 0x64, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x11, 0x48, 0x00, 0x52, 0x08, 0x65, 0x78,
+	0x69, 0x74, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x1d, 0x0a, 0x09, 0x72, 0x75, 0x6e, 0x5f, 0x65, 0x72,
+	0x72, 0x6f, 0x72, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x08, 0x72, 0x75, 0x6e,
+	0x45, 0x72, 0x72, 0x6f, 0x72, 0x42, 0x08, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x22,
+	0x2d, 0x0a, 0x07, 0x4a, 0x6f, 0x62, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x22, 0x0a, 0x04, 0x6a, 0x6f,
+	0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x2e, 0x4a, 0x6f, 0x62, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x6a, 0x6f, 0x62, 0x73, 0x42, 0x0f,
+	0x5a, 0x0d, 0x57, 0x4c, 0x46, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -564,7 +772,7 @@ func file_pkg_proto_client_proto_rawDescGZIP() []byte {
 	return file_pkg_proto_client_proto_rawDescData
 }
 
-var file_pkg_proto_client_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_pkg_proto_client_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_pkg_proto_client_proto_goTypes = []interface{}{
 	(*ClientAuthorization)(nil),       // 0: proto.ClientAuthorization
 	(*ClientAuthorizationResult)(nil), // 1: proto.ClientAuthorizationResult
@@ -573,23 +781,30 @@ var file_pkg_proto_client_proto_goTypes = []interface{}{
 	(*SlaveStatus)(nil),               // 4: proto.SlaveStatus
 	(*SlavesStatus)(nil),              // 5: proto.SlavesStatus
 	(*SlavesTop)(nil),                 // 6: proto.SlavesTop
-	(*NewJobMessage)(nil),             // 7: proto.NewJobMessage
-	(*emptypb.Empty)(nil),             // 8: google.protobuf.Empty
-	(*SlaveTop)(nil),                  // 9: proto.SlaveTop
+	(*JobData)(nil),                   // 7: proto.JobData
+	(*JobList)(nil),                   // 8: proto.JobList
+	(*NewJobMessage)(nil),             // 9: proto.NewJobMessage
+	(*emptypb.Empty)(nil),             // 10: google.protobuf.Empty
+	(*SlaveTop)(nil),                  // 11: proto.SlaveTop
+	(*UUID)(nil),                      // 12: proto.UUID
 }
 var file_pkg_proto_client_proto_depIdxs = []int32{
-	7, // 0: proto.ClientRequest.newJob:type_name -> proto.NewJobMessage
-	8, // 1: proto.ClientRequest.jobList:type_name -> google.protobuf.Empty
-	3, // 2: proto.ClientRequest.jobLog:type_name -> proto.JobLogRequestMessage
-	8, // 3: proto.ClientRequest.nodeList:type_name -> google.protobuf.Empty
-	8, // 4: proto.ClientRequest.nodeTop:type_name -> google.protobuf.Empty
-	4, // 5: proto.SlavesStatus.status:type_name -> proto.SlaveStatus
-	9, // 6: proto.SlavesTop.slave_tops:type_name -> proto.SlaveTop
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	9,  // 0: proto.ClientRequest.newJob:type_name -> proto.NewJobMessage
+	10, // 1: proto.ClientRequest.jobList:type_name -> google.protobuf.Empty
+	3,  // 2: proto.ClientRequest.jobLog:type_name -> proto.JobLogRequestMessage
+	10, // 3: proto.ClientRequest.nodeList:type_name -> google.protobuf.Empty
+	10, // 4: proto.ClientRequest.nodeTop:type_name -> google.protobuf.Empty
+	4,  // 5: proto.SlavesStatus.status:type_name -> proto.SlaveStatus
+	11, // 6: proto.SlavesTop.slave_tops:type_name -> proto.SlaveTop
+	12, // 7: proto.JobData.id:type_name -> proto.UUID
+	10, // 8: proto.JobData.pending:type_name -> google.protobuf.Empty
+	10, // 9: proto.JobData.running:type_name -> google.protobuf.Empty
+	7,  // 10: proto.JobList.jobs:type_name -> proto.JobData
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_pkg_proto_client_proto_init() }
@@ -683,6 +898,30 @@ func file_pkg_proto_client_proto_init() {
 				return nil
 			}
 		}
+		file_pkg_proto_client_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*JobData); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_pkg_proto_client_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*JobList); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_pkg_proto_client_proto_msgTypes[2].OneofWrappers = []interface{}{
 		(*ClientRequest_NewJob)(nil),
@@ -691,13 +930,19 @@ func file_pkg_proto_client_proto_init() {
 		(*ClientRequest_NodeList)(nil),
 		(*ClientRequest_NodeTop)(nil),
 	}
+	file_pkg_proto_client_proto_msgTypes[7].OneofWrappers = []interface{}{
+		(*JobData_Pending)(nil),
+		(*JobData_Running)(nil),
+		(*JobData_ExitCode)(nil),
+		(*JobData_RunError)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_pkg_proto_client_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

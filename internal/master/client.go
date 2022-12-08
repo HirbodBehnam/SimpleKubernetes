@@ -28,6 +28,11 @@ func (s *Server) handleClient(conn net.Conn) {
 		}
 		return
 	case *proto.ClientRequest_JobList:
+		err = util.WriteProtobuf(conn, s.getJobList())
+		if err != nil {
+			log.WithError(err).Warn("cannot write job list result")
+		}
+		return
 	case *proto.ClientRequest_JobLog:
 	case *proto.ClientRequest_NodeList:
 		err = util.WriteProtobuf(conn, s.getNodeStatus())
@@ -69,11 +74,6 @@ func (s *Server) authorizeClient(conn net.Conn) bool {
 		return false
 	}
 	return credOk
-}
-
-func (s *Server) dispatchJob(job *proto.NewJobMessage) error {
-	// TODO
-	return nil
 }
 
 // getNodeStatus gets all of nodes status

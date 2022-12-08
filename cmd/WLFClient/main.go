@@ -60,7 +60,7 @@ func main() {
 						Name:  "list",
 						Usage: "get jobs list",
 						Action: func(ctx *cli.Context) error {
-							return nil
+							return createMasterAndAuth(ctx).PrintJobList()
 						},
 					},
 					{

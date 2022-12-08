@@ -56,3 +56,28 @@ message SlavesTop {
   repeated uint32 slave_ids = 1;
   repeated SlaveTop slave_tops = 2;
 }
+
+// JobData is the struct which we sent into JobsList
+message JobData {
+  UUID id = 1;
+  // The command of this job
+  string cmd = 2;
+  // Which node ran or is running this job.
+  // If the job hasn't been started, this is zero.
+  uint32 node_id = 3;
+  oneof status {
+    // Job is waiting for a slave to become free
+    google.protobuf.Empty pending = 4;
+    // Job is running inside node
+    google.protobuf.Empty running = 5;
+    // Job has been exited with given exit code
+    sint32 exit_code = 6;
+    // We couldn't run the job for following reason
+    string run_error = 7;
+  }
+}
+
+// List of all jobs which master has
+message JobList {
+  repeated JobData jobs = 1;
+}
