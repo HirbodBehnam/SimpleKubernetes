@@ -44,5 +44,20 @@ func (s *Server) handleSlave(conn net.Conn) {
 			Dead:    false,
 		})
 	case *proto.SlaveToMasterRequest_JobFinished:
+		// Update job
+		s.jobsMutex.Lock()
+		job := s.jobs[data.JobFinished.JobId.Value]
+		switch status := data.JobFinished.Status.(type) {
+		case *proto.JobFinishedResult_ExitCode:
+			job.Status = jobStatusDone
+			job.ExitCode = status.ExitCode
+		case *proto.JobFinishedResult_RunError:
+			job.Status = jobStatusError
+			job.RunError = status.RunError
+		}
+		s.jobs[data.JobFinished.JobId.Value] = job
+		s.jobsMutex.Unlock()
+		// Send another job to clients
+		go s.dispatchRandomJob()
 	}
 }
