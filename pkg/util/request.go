@@ -2,7 +2,7 @@ package util
 
 import (
 	"github.com/go-faster/errors"
-	protobuf "github.com/golang/protobuf/proto"
+	protobuf "google.golang.org/protobuf/proto"
 	"io"
 )
 

@@ -3,7 +3,6 @@ package slave
 import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"net"
@@ -32,7 +31,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 	case *proto.MasterToSlaveRequest_GetTop:
 		// Get utilization of system
 		err = util.WriteProtobuf(conn, &proto.SlaveTop{
-			JobLimit:    uint32(s.MaxTasks),
+			JobLimit:    s.MaxTasks,
 			RunningJobs: 0, // TODO: fill this somehow
 			Cores:       getCPUCores(),
 			FreeMemory:  getFreeMemory(),
@@ -45,7 +44,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		log.WithField("remote", conn.RemoteAddr()).Debug("sent top")
 	case *proto.MasterToSlaveRequest_NewJob:
 		// Check if job is fine to be run on this server (utilization)
-		if !canJobRun(req.NewJob) {
+		if !canJobRun(req.NewJob.NewJob) {
 			err = util.WriteProtobuf(conn, &proto.SlaveJobAck{
 				Result: &proto.SlaveJobAck_InsufficientResource{
 					InsufficientResource: new(emptypb.Empty),
@@ -75,10 +74,9 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		s.runningJobCount++
 		s.mu.Unlock()
 		// Ack the master that we will run the job
-		jobID := uuid.NewString() // create an ID for job
 		err = util.WriteProtobuf(conn, &proto.SlaveJobAck{
-			Result: &proto.SlaveJobAck_JobId{
-				JobId: &proto.UUID{Value: jobID},
+			Result: &proto.SlaveJobAck_Ack{
+				Ack: new(emptypb.Empty),
 			},
 		})
 		if err != nil {
@@ -87,7 +85,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 			return
 		}
 		// Now run the job
-		go s.runJob(jobID, req.NewJob)
+		go s.runJob(req.NewJob.Id.Value, req.NewJob.NewJob)
 	case *proto.MasterToSlaveRequest_GetJobLogs:
 		// TODO
 	}

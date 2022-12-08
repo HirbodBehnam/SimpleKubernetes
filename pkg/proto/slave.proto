@@ -10,9 +10,14 @@ message MasterToSlaveRequest {
   oneof request {
     google.protobuf.Empty ping = 1;
     google.protobuf.Empty getTop = 2;
-    NewJobMessage newJob = 3;
+    SlaveNewJobRequest newJob = 3;
     GetJobLogsRequest getJobLogs = 4;
   }
+}
+
+message SlaveNewJobRequest {
+  UUID id = 1;
+  NewJobMessage newJob = 2;
 }
 
 message SlaveToMasterRequest {
@@ -40,7 +45,7 @@ message GetJobLogsRequest {
 // Sent after NewJobMessage is sent to client
 message SlaveJobAck {
   oneof result {
-    UUID job_id = 1; // sent if job was ok!
+    google.protobuf.Empty ack = 1; // sent if job was ok and now it's running!
     google.protobuf.Empty insufficient_resource = 2; // sent if slave couldn't run the job. The resource which is insufficient is sent in as data
     google.protobuf.Empty tasks_full = 3; // sent if slave couldn't run the job because all of allowed tasks are full.
   }

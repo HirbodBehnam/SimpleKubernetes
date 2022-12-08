@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/binary"
 	"github.com/go-faster/errors"
-	protobuf "github.com/golang/protobuf/proto"
+	protobuf "google.golang.org/protobuf/proto"
 	"io"
 )
 

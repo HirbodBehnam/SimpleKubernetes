@@ -3,8 +3,8 @@ package slave
 import (
 	"WLF/pkg/proto"
 	"github.com/go-faster/errors"
-	protobuf "github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	protobuf "google.golang.org/protobuf/proto"
 	"os"
 	"os/exec"
 	"path/filepath"
