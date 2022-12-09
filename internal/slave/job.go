@@ -2,9 +2,11 @@ package slave
 
 import (
 	"WLF/pkg/proto"
+	"WLF/pkg/util"
 	"github.com/go-faster/errors"
 	log "github.com/sirupsen/logrus"
 	protobuf "google.golang.org/protobuf/proto"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -77,7 +79,7 @@ func (s *Slave) runJob(id string, requestedJob *proto.NewJobMessage) {
 	// TODO: hook stdin and stdout
 	// Run it and wait
 	err = cmd.Run()
-	if err := cmd.Wait(); err != nil {
+	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			log.WithField("jobID", id).WithField("exitCode", exiterr.ExitCode()).Info("job done")
 			s.jobDone(id, job, exiterr.ExitCode(), nil)
@@ -124,11 +126,28 @@ func (s *Slave) jobDone(jobID string, job *slaveJob, exitCode int, runError *str
 	} else {
 		masterData.Status = &proto.JobFinishedResult_ExitCode{ExitCode: int32(exitCode)}
 	}
-	s.sendJobResult(jobID, masterData)
+	s.sendJobResult(masterData)
 }
 
-func (s *Slave) sendJobResult(jobID string, result *proto.JobFinishedResult) {
-
+// senJobResult will send a job result to master
+func (s *Slave) sendJobResult(result *proto.JobFinishedResult) {
+	// Create connection to master
+	conn, err := net.Dial("tcp", s.MasterAddress)
+	if err != nil {
+		log.WithError(err).Error("cannot dial master to send job result")
+		return
+	}
+	defer conn.Close()
+	// Send the result and done
+	err = util.WriteProtobuf(conn, &proto.SlaveToMasterRequest{
+		Request: &proto.SlaveToMasterRequest_JobFinished{
+			JobFinished: result,
+		},
+	})
+	if err != nil {
+		log.WithError(err).Error("cannot send job result to master")
+		return
+	}
 }
 
 // reduceRunningJobs will reduce the running job count by one atomically
