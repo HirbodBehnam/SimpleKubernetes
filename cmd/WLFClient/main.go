@@ -51,9 +51,33 @@ func main() {
 							&cli.PathFlag{
 								Name: "executable",
 							},
+							&cli.Uint64Flag{
+								Name:  "needed_memory",
+								Usage: "needed memory to run this job in bytes",
+							},
+							&cli.Uint64Flag{
+								Name:  "needed_cores",
+								Usage: "needed cores to run this job",
+							},
+							&cli.Uint64Flag{
+								Name:  "needed_disk",
+								Usage: "needed disk to run this job in bytes",
+							},
 						},
 						Action: func(ctx *cli.Context) error {
-							return nil
+							var neededCores *uint32
+							needCores64 := nilOnZero(ctx, "needed_cores")
+							if needCores64 != nil {
+								neededCores = new(uint32)
+								*neededCores = uint32(*needCores64)
+							}
+							return createMasterAndAuth(ctx).AddJob(
+								ctx.String("config"),
+								ctx.String("executable"),
+								nilOnZero(ctx, "needed_memory"),
+								nilOnZero(ctx, "needed_disk"),
+								neededCores,
+							)
 						},
 					},
 					{
@@ -114,4 +138,12 @@ func createMasterAndAuth(ctx *cli.Context) *client.MasterSettings {
 		log.WithError(err).WithField("settings", *m).Fatalln("cannot connect to master")
 	}
 	return m
+}
+
+func nilOnZero(ctx *cli.Context, name string) *uint64 {
+	flag := ctx.Uint64(name)
+	if flag == 0 {
+		return nil
+	}
+	return &flag
 }

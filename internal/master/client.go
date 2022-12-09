@@ -3,6 +3,7 @@ package master
 import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"net"
 )
@@ -23,9 +24,12 @@ func (s *Server) handleClient(conn net.Conn) {
 	// Get type of command
 	switch data := command.Request.(type) {
 	case *proto.ClientRequest_NewJob: // send a job to client
-		if err = s.dispatchJob(data.NewJob); err != nil {
-			log.WithError(err).Error("cannot dispatch job")
+		jobID := uuid.NewString()
+		if err = util.WriteProtobuf(conn, &proto.UUID{Value: jobID}); err != nil {
+			log.WithError(err).Warn("cannot send back the job ID to client")
+			return
 		}
+		go s.dispatchJob(jobID, data.NewJob)
 		return
 	case *proto.ClientRequest_JobList:
 		err = util.WriteProtobuf(conn, s.getJobList())

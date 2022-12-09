@@ -4,7 +4,6 @@ import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
 	"github.com/go-faster/errors"
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"net"
@@ -74,8 +73,7 @@ func (s *Server) getJobList() *proto.JobList {
 	return result
 }
 
-func (s *Server) dispatchJob(j *proto.NewJobMessage) error {
-	jobID := uuid.NewString()
+func (s *Server) dispatchJob(jobID string, j *proto.NewJobMessage) {
 	// Lock jobs to edit them
 	s.jobsMutex.Lock()
 	defer s.jobsMutex.Unlock()
@@ -88,7 +86,6 @@ func (s *Server) dispatchJob(j *proto.NewJobMessage) error {
 	s.pendingJobs[jobID] = savedJob
 	// Get list of slaves
 	s.tryDispatchJobToSlaves(savedJob)
-	return nil
 }
 
 // dispatchRandomJob will send a random job to all slaves and checks if they can accept it

@@ -4,9 +4,11 @@ import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
 	"fmt"
+	"github.com/go-faster/errors"
 	"github.com/olekukonko/tablewriter"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -56,5 +58,48 @@ func (m *MasterSettings) PrintJobList() error {
 		})
 	}
 	table.Render()
+	return nil
+}
+
+// AddJob will get a job and dispatch it to master
+func (m *MasterSettings) AddJob(configPath, executablePath string, neededMemory, neededDisk *uint64, neededCores *uint32) error {
+	// Read the config file
+	config, err := readJobConfigJson(configPath)
+	if err != nil {
+		return errors.Wrap(err, "cannot read job config file")
+	}
+	// Read the executable if needed
+	var executable []byte
+	if executablePath != "" {
+		executable, err = os.ReadFile(executablePath)
+		if err != nil {
+			return errors.Wrap(err, "cannot read the executable")
+		}
+	}
+	// Create job
+	job := &proto.NewJobMessage{
+		Cmd:          config.Cmd,
+		NeededMemory: neededMemory,
+		NeededCores:  neededCores,
+		NeededSpace:  neededDisk,
+	}
+	if executable != nil {
+		job.Program = &proto.PayloadProgram{
+			ProgramBin:  executable,
+			ProgramName: filepath.Base(executablePath),
+		}
+	}
+	// Send job
+	var jobID proto.UUID
+	err = util.RequestWithProtobuf(
+		m.conn,
+		&proto.ClientRequest{Request: &proto.ClientRequest_NewJob{NewJob: job}},
+		&jobID,
+	)
+	if err != nil {
+		return errors.Wrap(err, "cannot dispatch job")
+	}
+	// Show ID
+	fmt.Println("Job dispatched with ID", jobID.Value)
 	return nil
 }
