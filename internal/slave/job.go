@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -24,19 +23,14 @@ type slaveJob struct {
 	// This value can be used to check if job is done or not
 	ended time.Time
 	// stdout logs (each element represents a line)
-	stdout []string
+	stdout lineLogger
 	// stderr logs (each element represents a line)
-	stderr []string
-	// A mutex to sync logs I guess?
-	mu sync.Mutex
+	stderr lineLogger
 }
 
 // Dead will check if the job is dead or not
 func (j *slaveJob) Dead() bool {
-	j.mu.Lock()
-	result := !j.ended.IsZero()
-	j.mu.Unlock()
-	return result
+	return !j.ended.IsZero()
 }
 
 // runJob will get a job and run it
@@ -76,7 +70,8 @@ func (s *Slave) runJob(id string, requestedJob *proto.NewJobMessage) {
 	// Finally, run the program
 	cmd := exec.Command(program, args...)
 	cmd.Dir = sandboxFolder
-	// TODO: hook stdin and stdout
+	cmd.Stdout = &job.stdout
+	cmd.Stderr = &job.stderr
 	// Run it and wait
 	err = cmd.Run()
 	if err != nil {

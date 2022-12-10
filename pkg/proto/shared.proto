@@ -34,12 +34,23 @@ message SlaveTop {
   uint64 free_disk = 5;
 }
 
-enum Resource {
-  CPU = 0;
-  Memory = 1;
-  Disk = 2;
-}
-
 message UUID {
   string value = 1;
+}
+
+message GetJobLogsRequest {
+  UUID job_id = 1;
+  uint32 line_count = 2;
+  GetJobLogsRequestType type = 3;
+  bool stderr = 4;
+}
+
+enum GetJobLogsRequestType {
+  HEAD = 0;
+  TAIL = 1;
+  LIVE = 2;
+}
+
+message GetJobLogsResult {
+  repeated string logs = 1;
 }

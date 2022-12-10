@@ -32,7 +32,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		// Get utilization of system
 		err = util.WriteProtobuf(conn, &proto.SlaveTop{
 			JobLimit:    s.MaxTasks,
-			RunningJobs: 0, // TODO: fill this somehow
+			RunningJobs: s.runningJobCount, // TODO: fill this somehow
 			Cores:       getCPUCores(),
 			FreeMemory:  getFreeMemory(),
 			FreeDisk:    getFreeDisk(),
@@ -87,6 +87,46 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		// Now run the job
 		go s.runJob(req.NewJob.Id.Value, req.NewJob.NewJob)
 	case *proto.MasterToSlaveRequest_GetJobLogs:
-		// TODO
+		// Get job
+		s.mu.RLock()
+		j, found := s.jobs[req.GetJobLogs.JobId.Value]
+		s.mu.RUnlock()
+		if !found {
+			log.WithField("jobID", req.GetJobLogs.JobId.Value).Warn("invalid job id")
+			return
+		}
+		// Get type
+		result := &proto.GetJobLogsResult{
+			Logs: make([]string, 0, req.GetJobLogs.LineCount),
+		}
+		var output *lineLogger
+		if req.GetJobLogs.Stderr {
+			output = &j.stderr
+		} else {
+			output = &j.stdout
+		}
+		totalLines := output.Len()
+		linesNeeded := int64(req.GetJobLogs.LineCount)
+		// Do the thing
+		switch req.GetJobLogs.Type {
+		case proto.GetJobLogsRequestType_HEAD:
+			for i := totalLines - 1; i >= 0 && linesNeeded >= 0; i-- {
+				linesNeeded--
+				result.Logs = append(result.Logs, output.Get(i))
+			}
+		case proto.GetJobLogsRequestType_TAIL:
+			for i := 0; int64(i) < linesNeeded && i < totalLines; i++ {
+				result.Logs = append(result.Logs, output.Get(i))
+			}
+		case proto.GetJobLogsRequestType_LIVE:
+			// TODO: Fill
+			return
+		}
+		// Send back
+		err = util.WriteProtobuf(conn, result)
+		if err != nil {
+			log.WithError(err).Warn("cannot send back the result of logs")
+			return
+		}
 	}
 }

@@ -38,10 +38,6 @@ message SlaveHelloMasterAck {
   uint32 id = 1;
 }
 
-message GetJobLogsRequest {
-  string job_id = 1;
-}
-
 // Sent after NewJobMessage is sent to client
 message SlaveJobAck {
   oneof result {
