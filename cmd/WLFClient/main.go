@@ -90,9 +90,35 @@ func main() {
 					{
 						Name:  "logs",
 						Usage: "get logs of a job",
-						Flags: []cli.Flag{},
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "id",
+								Usage:    "The job ID to get it's logs",
+								Required: true,
+							},
+							&cli.Uint64Flag{
+								Name:  "count",
+								Value: 5,
+								Usage: "Number of lines to print",
+							},
+							&cli.BoolFlag{
+								Name:  "live",
+								Value: false,
+								Usage: "Show live logs",
+							},
+							&cli.BoolFlag{
+								Name:  "tail",
+								Value: false,
+								Usage: "Show logs from top",
+							},
+						},
 						Action: func(ctx *cli.Context) error {
-							return nil
+							return createMasterAndAuth(ctx).LogsOfJob(
+								ctx.String("id"),
+								uint32(ctx.Uint64("count")),
+								ctx.Bool("live"),
+								!ctx.Bool("head"),
+							)
 						},
 					},
 				},

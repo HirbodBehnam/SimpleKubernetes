@@ -5,8 +5,11 @@ import (
 	"WLF/pkg/util"
 	"fmt"
 	"github.com/dustin/go-humanize"
+	"github.com/go-faster/errors"
 	"github.com/olekukonko/tablewriter"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"io"
 	"os"
 	"strconv"
 )
@@ -72,4 +75,54 @@ func (m *MasterSettings) PrintNodeTop() error {
 	}
 	table.Render()
 	return nil
+}
+
+// LogsOfJob will print logs of a job
+func (m *MasterSettings) LogsOfJob(jobID string, count uint32, live, tail bool) error {
+	// Create the request
+	request := &proto.GetJobLogsRequest{
+		JobId:     &proto.UUID{Value: jobID},
+		LineCount: count,
+		Stderr:    false, // TODO
+	}
+	if live {
+		request.Type = proto.GetJobLogsRequestType_LIVE
+	} else if tail {
+		request.Type = proto.GetJobLogsRequestType_TAIL
+	} else {
+		request.Type = proto.GetJobLogsRequestType_HEAD
+	}
+	// Send the request
+	err := util.WriteProtobuf(m.conn, request)
+	if err != nil {
+		return errors.Wrap(err, "cannot send logs request")
+	}
+	// Stream logs if needed
+	if live {
+		return streamLiveLogs(m.conn)
+	}
+	// Otherwise just read the data
+	var logs proto.GetJobLogsResult
+	err = util.ReadProtobuf(m.conn, &logs)
+	if err != nil {
+		return errors.Wrap(err, "cannot read logs response")
+	}
+	for _, line := range logs.Logs {
+		log.Println(line)
+	}
+	return nil
+}
+
+// streamLiveLogs will write live logs of user
+func streamLiveLogs(r io.Reader) error {
+	for {
+		var logs proto.GetJobLogsResult
+		err := util.ReadProtobuf(r, &logs)
+		if err != nil {
+			return errors.Wrap(err, "cannot read logs response")
+		}
+		for _, line := range logs.Logs {
+			log.Println(line)
+		}
+	}
 }
