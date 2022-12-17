@@ -38,6 +38,27 @@ func (s *Server) handleClient(conn net.Conn) {
 		}
 		return
 	case *proto.ClientRequest_JobLog:
+		// Read request
+		var request proto.GetJobLogsRequest
+		err = util.ReadProtobuf(conn, &request)
+		if err != nil {
+			log.WithError(err).Warn("cannot read request")
+			return
+		}
+		// Get job
+		s.jobsMutex.RLock()
+		job, ok := s.jobs[request.JobId.Value]
+		s.jobsMutex.RUnlock()
+		if !ok {
+			_ = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
+				Result: &proto.GetJobLogsResult_Error{
+					Error: "job not found",
+				},
+			})
+			return
+		}
+		// Connect to slave and get the logs
+		// TODO
 	case *proto.ClientRequest_NodeList:
 		err = util.WriteProtobuf(conn, s.getNodeStatus())
 		if err != nil {

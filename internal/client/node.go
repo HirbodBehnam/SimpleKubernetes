@@ -102,27 +102,32 @@ func (m *MasterSettings) LogsOfJob(jobID string, count uint32, live, tail bool) 
 		return streamLiveLogs(m.conn)
 	}
 	// Otherwise just read the data
-	var logs proto.GetJobLogsResult
-	err = util.ReadProtobuf(m.conn, &logs)
-	if err != nil {
-		return errors.Wrap(err, "cannot read logs response")
-	}
-	for _, line := range logs.Logs {
-		log.Println(line)
-	}
-	return nil
+	return readNextLog(m.conn)
 }
 
 // streamLiveLogs will write live logs of user
 func streamLiveLogs(r io.Reader) error {
 	for {
-		var logs proto.GetJobLogsResult
-		err := util.ReadProtobuf(r, &logs)
-		if err != nil {
-			return errors.Wrap(err, "cannot read logs response")
+		if err := readNextLog(r); err != nil {
+			return err
 		}
-		for _, line := range logs.Logs {
+	}
+}
+
+// readNextLog will read the next log from a reader
+func readNextLog(r io.Reader) error {
+	var logs proto.GetJobLogsResult
+	err := util.ReadProtobuf(r, &logs)
+	if err != nil {
+		return errors.Wrap(err, "cannot read logs response")
+	}
+	switch data := logs.Result.(type) {
+	case *proto.GetJobLogsResult_Error:
+		return errors.New(data.Error)
+	case *proto.GetJobLogsResult_Results:
+		for _, line := range data.Results.Logs {
 			log.Println(line)
 		}
 	}
+	return nil
 }

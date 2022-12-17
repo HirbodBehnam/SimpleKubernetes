@@ -51,6 +51,13 @@ enum GetJobLogsRequestType {
   LIVE = 2;
 }
 
-message GetJobLogsResult {
+message JobLogsResult {
   repeated string logs = 1;
+}
+
+message GetJobLogsResult {
+  oneof result {
+    JobLogsResult results = 1;
+    string error = 2;
+  }
 }
