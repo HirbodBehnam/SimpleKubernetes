@@ -53,3 +53,18 @@ func (l *SlaveList) MakeDead(address string) {
 	}
 	l.mu.RUnlock()
 }
+
+// FindAddress will find the address of a slave based on it's ID
+func (l *SlaveList) FindAddress(id uint32) string {
+	var result string
+	l.mu.RLock()
+	for e := l.list.Front(); e != nil; e = e.Next() {
+		v := e.Value.(*SlaveListElement)
+		if v.Id == id {
+			result = v.Address
+			break
+		}
+	}
+	l.mu.RUnlock()
+	return result
+}

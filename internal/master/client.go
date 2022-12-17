@@ -38,16 +38,9 @@ func (s *Server) handleClient(conn net.Conn) {
 		}
 		return
 	case *proto.ClientRequest_JobLog:
-		// Read request
-		var request proto.GetJobLogsRequest
-		err = util.ReadProtobuf(conn, &request)
-		if err != nil {
-			log.WithError(err).Warn("cannot read request")
-			return
-		}
 		// Get job
 		s.jobsMutex.RLock()
-		job, ok := s.jobs[request.JobId.Value]
+		job, ok := s.jobs[data.JobLog.JobId.Value]
 		s.jobsMutex.RUnlock()
 		if !ok {
 			_ = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
@@ -58,7 +51,15 @@ func (s *Server) handleClient(conn net.Conn) {
 			return
 		}
 		// Connect to slave and get the logs
-		// TODO
+		err = proxyJobLogs(conn, s.Salves.FindAddress(job.SlaveID), data.JobLog)
+		if err != nil {
+			_ = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
+				Result: &proto.GetJobLogsResult_Error{
+					Error: "cannot get logs from slave: " + err.Error(),
+				},
+			})
+			log.WithError(err).Error("cannot get logs from slave")
+		}
 	case *proto.ClientRequest_NodeList:
 		err = util.WriteProtobuf(conn, s.getNodeStatus())
 		if err != nil {

@@ -3,7 +3,9 @@ package master
 import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
+	"github.com/go-faster/errors"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net"
 	"sync/atomic"
 )
@@ -60,4 +62,27 @@ func (s *Server) handleSlave(conn net.Conn) {
 		// Send another job to clients
 		go s.dispatchRandomJob()
 	}
+}
+
+// proxyJobLogs will proxy the job log results from slave to client.
+// It will also create a new connection to slave.
+func proxyJobLogs(client io.Writer, slaveAddress string, request *proto.GetJobLogsRequest) error {
+	// Connect to slave
+	slave, err := net.Dial("tcp", slaveAddress)
+	if err != nil {
+		return errors.Wrap(err, "cannot connect to slave")
+	}
+	defer slave.Close()
+	// Send request
+	err = util.WriteProtobuf(slave, &proto.MasterToSlaveRequest{
+		Request: &proto.MasterToSlaveRequest_GetJobLogs{
+			GetJobLogs: request,
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "cannot send get log request to slave")
+	}
+	// Proxy result
+	_, _ = io.Copy(client, slave)
+	return nil
 }

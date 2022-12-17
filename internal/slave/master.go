@@ -93,11 +93,18 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		s.mu.RUnlock()
 		if !found {
 			log.WithField("jobID", req.GetJobLogs.JobId.Value).Warn("invalid job id")
+			_ = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
+				Result: &proto.GetJobLogsResult_Error{
+					Error: "job not found",
+				},
+			})
 			return
 		}
 		// Get type
-		result := &proto.GetJobLogsResult{
-			Logs: make([]string, 0, req.GetJobLogs.LineCount),
+		result := &proto.GetJobLogsResult_Results{
+			Results: &proto.JobLogsResult{
+				Logs: make([]string, 0, req.GetJobLogs.LineCount),
+			},
 		}
 		var output *lineLogger
 		if req.GetJobLogs.Stderr {
@@ -106,24 +113,29 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 			output = &j.stdout
 		}
 		totalLines := output.Len()
-		linesNeeded := int64(req.GetJobLogs.LineCount)
+		linesNeeded := int(req.GetJobLogs.LineCount)
 		// Do the thing
 		switch req.GetJobLogs.Type {
 		case proto.GetJobLogsRequestType_HEAD:
-			for i := totalLines - 1; i >= 0 && linesNeeded >= 0; i-- {
-				linesNeeded--
-				result.Logs = append(result.Logs, output.Get(i))
+			start := totalLines - linesNeeded
+			if start < 0 {
+				start = 0
+			}
+			for ; start < totalLines; start++ {
+				result.Results.Logs = append(result.Results.Logs, output.Get(start))
 			}
 		case proto.GetJobLogsRequestType_TAIL:
-			for i := 0; int64(i) < linesNeeded && i < totalLines; i++ {
-				result.Logs = append(result.Logs, output.Get(i))
+			for i := 0; i < linesNeeded && i < totalLines; i++ {
+				result.Results.Logs = append(result.Results.Logs, output.Get(i))
 			}
 		case proto.GetJobLogsRequestType_LIVE:
 			// TODO: Fill
 			return
 		}
 		// Send back
-		err = util.WriteProtobuf(conn, result)
+		err = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
+			Result: result,
+		})
 		if err != nil {
 			log.WithError(err).Warn("cannot send back the result of logs")
 			return

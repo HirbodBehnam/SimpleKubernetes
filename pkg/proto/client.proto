@@ -22,19 +22,10 @@ message ClientRequest {
   oneof request {
     NewJobMessage newJob = 1;
     google.protobuf.Empty jobList = 2;
-    JobLogRequestMessage jobLog = 3;
+    GetJobLogsRequest jobLog = 3;
     google.protobuf.Empty nodeList = 4;
     google.protobuf.Empty nodeTop = 5;
   }
-}
-
-message JobLogRequestMessage {
-  string job_id = 1;
-  // tail or head?
-  bool tail = 2;
-  // Show live logs?
-  bool live = 3;
-  uint32 line_count = 4;
 }
 
 // Status of a slave to send to client with node list
