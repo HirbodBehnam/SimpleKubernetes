@@ -15,6 +15,9 @@ func (l *lineLogger) Write(b []byte) (int, error) {
 	lines := strings.Split(string(b), "\n")
 	l.mu.Lock()
 	for _, line := range lines {
+		if line == "" {
+			continue
+		}
 		l.lines = append(l.lines, line)
 	}
 	l.mu.Unlock()

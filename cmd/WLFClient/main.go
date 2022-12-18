@@ -107,7 +107,7 @@ func main() {
 								Usage: "Show live logs",
 							},
 							&cli.BoolFlag{
-								Name:  "tail",
+								Name:  "head",
 								Value: false,
 								Usage: "Show logs from top",
 							},

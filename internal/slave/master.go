@@ -117,16 +117,16 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		// Do the thing
 		switch req.GetJobLogs.Type {
 		case proto.GetJobLogsRequestType_HEAD:
+			for i := 0; i < linesNeeded && i < totalLines; i++ {
+				result.Results.Logs = append(result.Results.Logs, output.Get(i))
+			}
+		case proto.GetJobLogsRequestType_TAIL:
 			start := totalLines - linesNeeded
 			if start < 0 {
 				start = 0
 			}
 			for ; start < totalLines; start++ {
 				result.Results.Logs = append(result.Results.Logs, output.Get(start))
-			}
-		case proto.GetJobLogsRequestType_TAIL:
-			for i := 0; i < linesNeeded && i < totalLines; i++ {
-				result.Results.Logs = append(result.Results.Logs, output.Get(i))
 			}
 		case proto.GetJobLogsRequestType_LIVE:
 			// TODO: Fill
