@@ -7,7 +7,6 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/go-faster/errors"
 	"github.com/olekukonko/tablewriter"
-	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
 	"os"
@@ -93,7 +92,11 @@ func (m *MasterSettings) LogsOfJob(jobID string, count uint32, live, tail bool) 
 		request.Type = proto.GetJobLogsRequestType_HEAD
 	}
 	// Send the request
-	err := util.WriteProtobuf(m.conn, request)
+	err := util.WriteProtobuf(m.conn, &proto.ClientRequest{
+		Request: &proto.ClientRequest_JobLog{
+			JobLog: request,
+		},
+	})
 	if err != nil {
 		return errors.Wrap(err, "cannot send logs request")
 	}
@@ -126,7 +129,7 @@ func readNextLog(r io.Reader) error {
 		return errors.New(data.Error)
 	case *proto.GetJobLogsResult_Results:
 		for _, line := range data.Results.Logs {
-			log.Println(line)
+			fmt.Println(line)
 		}
 	}
 	return nil
