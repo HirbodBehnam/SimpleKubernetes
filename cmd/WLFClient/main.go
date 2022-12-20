@@ -111,6 +111,11 @@ func main() {
 								Value: false,
 								Usage: "Show logs from top",
 							},
+							&cli.BoolFlag{
+								Name:  "stderr",
+								Value: false,
+								Usage: "Show logs of stderr instead of stdout",
+							},
 						},
 						Action: func(ctx *cli.Context) error {
 							return createMasterAndAuth(ctx).LogsOfJob(
@@ -118,6 +123,7 @@ func main() {
 								uint32(ctx.Uint64("count")),
 								ctx.Bool("live"),
 								!ctx.Bool("head"),
+								ctx.Bool("stderr"),
 							)
 						},
 					},

@@ -77,12 +77,12 @@ func (m *MasterSettings) PrintNodeTop() error {
 }
 
 // LogsOfJob will print logs of a job
-func (m *MasterSettings) LogsOfJob(jobID string, count uint32, live, tail bool) error {
+func (m *MasterSettings) LogsOfJob(jobID string, count uint32, live, tail, stderr bool) error {
 	// Create the request
 	request := &proto.GetJobLogsRequest{
 		JobId:     &proto.UUID{Value: jobID},
 		LineCount: count,
-		Stderr:    false, // TODO
+		Stderr:    stderr,
 	}
 	if live {
 		request.Type = proto.GetJobLogsRequestType_LIVE

@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"net"
+	"time"
 )
 
 type jobStatus uint8
@@ -120,13 +121,37 @@ func (s *Server) tryDispatchJobToSlaves(j job) {
 			continue
 		}
 		// We dispatched the job! Yay
-		log.WithField("jobID", j.ID).WithField("slaveID", slave.Id).Info("dispatched job")
 		delete(s.pendingJobs, j.ID)
 		j.Status = jobStatusRunning
 		j.SlaveID = slave.Id
 		j.JobData.Program = nil // free memory
 		s.jobs[j.ID] = j
+		log.WithField("jobID", j.ID).WithField("slaveID", slave.Id).Info("job dispatched to slave")
 		break
+	}
+}
+
+// dispatchJobsToSlave tries to dispatch all available jobs to a specific slave
+func (s *Server) dispatchJobsToSlave(slaveID uint32, slaveAddress string) {
+	// Wait a little to allow the slave to boot-up
+	time.Sleep(time.Second)
+	// Lock jobs
+	s.jobsMutex.Lock()
+	defer s.jobsMutex.Unlock()
+	// For all jobs, dispatch them to slave
+	for _, j := range s.pendingJobs {
+		err := dispatchJobToSlave(j, slaveAddress)
+		if err != nil {
+			log.WithError(err).Warn("cannot dispatch job to new slave")
+			break
+		} else {
+			delete(s.pendingJobs, j.ID)
+			j.Status = jobStatusRunning
+			j.SlaveID = slaveID
+			j.JobData.Program = nil // free memory
+			s.jobs[j.ID] = j
+			log.WithField("jobID", j.ID).WithField("slaveID", slaveID).Info("job dispatched to slave")
+		}
 	}
 }
 

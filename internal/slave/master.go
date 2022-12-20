@@ -5,7 +5,9 @@ import (
 	"WLF/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"io"
 	"net"
+	"time"
 )
 
 // handleMasterConnection will get the request which master wants from us
@@ -32,7 +34,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		// Get utilization of system
 		err = util.WriteProtobuf(conn, &proto.SlaveTop{
 			JobLimit:    s.MaxTasks,
-			RunningJobs: s.runningJobCount, // TODO: fill this somehow
+			RunningJobs: s.runningJobCount,
 			Cores:       getCPUCores(),
 			FreeMemory:  getFreeMemory(),
 			FreeDisk:    getFreeDisk(),
@@ -129,7 +131,11 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 				result.Results.Logs = append(result.Results.Logs, output.Get(start))
 			}
 		case proto.GetJobLogsRequestType_LIVE:
-			// TODO: Fill
+			start := totalLines - linesNeeded
+			if start < 0 {
+				start = 0
+			}
+			proxyLiveLogs(conn, output, start)
 			return
 		}
 		// Send back
@@ -140,5 +146,28 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 			log.WithError(err).Warn("cannot send back the result of logs")
 			return
 		}
+	}
+}
+
+// proxyLiveLogs will send live logs to client
+func proxyLiveLogs(w io.Writer, output *lineLogger, startLine int) {
+	lastSentLine := startLine
+	for {
+		var logs []string
+		logs, lastSentLine = output.GetFrom(lastSentLine)
+		if len(logs) != 0 {
+			err := util.WriteProtobuf(w, &proto.GetJobLogsResult{
+				Result: &proto.GetJobLogsResult_Results{
+					Results: &proto.JobLogsResult{
+						Logs: logs,
+					},
+				},
+			})
+			if err != nil {
+				break
+			}
+		}
+		// Wait before next cycle
+		time.Sleep(time.Second)
 	}
 }

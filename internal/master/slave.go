@@ -45,6 +45,8 @@ func (s *Server) handleSlave(conn net.Conn) {
 			Id:      slaveID,
 			Dead:    false,
 		})
+		// Dispatch jobs if needed
+		go s.dispatchJobsToSlave(slaveID, data.Hello.ConnectAddress)
 	case *proto.SlaveToMasterRequest_JobFinished:
 		// Update job
 		s.jobsMutex.Lock()
