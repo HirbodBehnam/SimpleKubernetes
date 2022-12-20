@@ -54,6 +54,8 @@ message JobFinishedResult {
     sint32 exit_code = 3;
     string run_error = 4;
   }
+  repeated string stdout = 5;
+  repeated string stderr = 6;
 }
 
 // Sent from master to slave after SlaveHello

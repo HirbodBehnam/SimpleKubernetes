@@ -23,9 +23,9 @@ type slaveJob struct {
 	// This value can be used to check if job is done or not
 	ended time.Time
 	// stdout logs (each element represents a line)
-	stdout lineLogger
+	stdout util.LineLogger
 	// stderr logs (each element represents a line)
-	stderr lineLogger
+	stderr util.LineLogger
 }
 
 // Dead will check if the job is dead or not
@@ -115,6 +115,8 @@ func (s *Slave) jobDone(jobID string, job *slaveJob, exitCode int, runError *str
 	masterData := &proto.JobFinishedResult{
 		SlaveId: s.slaveID,
 		JobId:   &proto.UUID{Value: jobID},
+		Stdout:  job.stdout.Copy(),
+		Stderr:  job.stderr.Copy(),
 	}
 	if runError != nil {
 		masterData.Status = &proto.JobFinishedResult_RunError{RunError: *runError}

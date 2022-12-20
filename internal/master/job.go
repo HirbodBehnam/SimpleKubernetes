@@ -38,6 +38,10 @@ type job struct {
 	ExitCode int32
 	// The error of run if Status is jobStatusError
 	RunError string
+	// Stderr and Stdout of this job.
+	// These values are null if the job is not finished yet
+	Stderr *util.LineLogger
+	Stdout *util.LineLogger
 }
 
 // ToJobData will convert a job to a proto.JobData object.

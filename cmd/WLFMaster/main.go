@@ -2,7 +2,6 @@ package main
 
 import (
 	"WLF/internal/master"
-	"WLF/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"math/rand"
@@ -57,7 +56,7 @@ func runMaster(ctx *cli.Context) error {
 		Users: map[string]string{
 			ctx.String("username"): ctx.String("password"),
 		},
-		Salves: util.NewSlaveList(),
+		Salves: master.NewSlaveList(),
 	}
 	server.RunServer(ctx.String("client-listen-address"), ctx.String("slave-listen-address"))
 	return nil

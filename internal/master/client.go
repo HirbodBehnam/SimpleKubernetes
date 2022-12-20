@@ -50,6 +50,38 @@ func (s *Server) handleClient(conn net.Conn) {
 			})
 			return
 		}
+		// Check if job is done
+		if job.Stdout != nil { // job done and both stdout and stdin are populated
+			if data.JobLog.Type == proto.GetJobLogsRequestType_LIVE { // what the fuck no
+				_ = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
+					Result: &proto.GetJobLogsResult_Error{
+						Error: "job is not running thus live logs dont work",
+					},
+				})
+				return
+			}
+			// Send the logs
+			output := job.Stdout
+			if data.JobLog.Stderr {
+				output = job.Stdout
+			}
+			logs := output.Tail(int(data.JobLog.LineCount))
+			if data.JobLog.Type == proto.GetJobLogsRequestType_HEAD {
+				logs = output.Head(int(data.JobLog.LineCount))
+			}
+			err = util.WriteProtobuf(conn, &proto.GetJobLogsResult{
+				Result: &proto.GetJobLogsResult_Results{
+					Results: &proto.JobLogsResult{
+						Logs: logs,
+					},
+				},
+			})
+			if err != nil {
+				log.WithError(err).Warn("cannot send job result to client")
+				return
+			}
+			return
+		}
 		// Connect to slave and get the logs
 		err = proxyJobLogs(conn, s.Salves.FindAddress(job.SlaveID), data.JobLog)
 		if err != nil {

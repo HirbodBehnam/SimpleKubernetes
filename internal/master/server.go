@@ -1,7 +1,6 @@
 package master
 
 import (
-	"WLF/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"net"
 	"sync"
@@ -12,7 +11,7 @@ type Server struct {
 	// Users which can access this master
 	Users map[string]string
 	// List of all slave addresses
-	Salves *util.SlaveList
+	Salves *SlaveList
 	// List of jobs which are running in server
 	jobs map[string]job
 	// List of jobs which are pending (not running inside a slave)

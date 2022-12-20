@@ -40,7 +40,7 @@ func (s *Server) handleSlave(conn net.Conn) {
 			return
 		}
 		// Done. Add to slaves
-		s.Salves.AddSlave(util.SlaveListElement{
+		s.Salves.AddSlave(SlaveListElement{
 			Address: data.Hello.ConnectAddress,
 			Id:      slaveID,
 			Dead:    false,
@@ -59,6 +59,8 @@ func (s *Server) handleSlave(conn net.Conn) {
 			job.Status = jobStatusError
 			job.RunError = status.RunError
 		}
+		job.Stdout = util.NewLineLogger(data.JobFinished.Stdout)
+		job.Stderr = util.NewLineLogger(data.JobFinished.Stderr)
 		s.jobs[data.JobFinished.JobId.Value] = job
 		s.jobsMutex.Unlock()
 		// Send another job to clients

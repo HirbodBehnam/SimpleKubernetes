@@ -104,34 +104,22 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 		}
 		// Get type
 		result := &proto.GetJobLogsResult_Results{
-			Results: &proto.JobLogsResult{
-				Logs: make([]string, 0, req.GetJobLogs.LineCount),
-			},
+			Results: &proto.JobLogsResult{},
 		}
-		var output *lineLogger
+		var output *util.LineLogger
 		if req.GetJobLogs.Stderr {
 			output = &j.stderr
 		} else {
 			output = &j.stdout
 		}
-		totalLines := output.Len()
-		linesNeeded := int(req.GetJobLogs.LineCount)
 		// Do the thing
 		switch req.GetJobLogs.Type {
 		case proto.GetJobLogsRequestType_HEAD:
-			for i := 0; i < linesNeeded && i < totalLines; i++ {
-				result.Results.Logs = append(result.Results.Logs, output.Get(i))
-			}
+			result.Results.Logs = output.Head(int(req.GetJobLogs.LineCount))
 		case proto.GetJobLogsRequestType_TAIL:
-			start := totalLines - linesNeeded
-			if start < 0 {
-				start = 0
-			}
-			for ; start < totalLines; start++ {
-				result.Results.Logs = append(result.Results.Logs, output.Get(start))
-			}
+			result.Results.Logs = output.Tail(int(req.GetJobLogs.LineCount))
 		case proto.GetJobLogsRequestType_LIVE:
-			start := totalLines - linesNeeded
+			start := output.Len() - int(req.GetJobLogs.LineCount)
 			if start < 0 {
 				start = 0
 			}
@@ -150,7 +138,7 @@ func (s *Slave) handleMasterConnection(conn net.Conn) {
 }
 
 // proxyLiveLogs will send live logs to client
-func proxyLiveLogs(w io.Writer, output *lineLogger, startLine int) {
+func proxyLiveLogs(w io.Writer, output *util.LineLogger, startLine int) {
 	lastSentLine := startLine
 	for {
 		var logs []string
