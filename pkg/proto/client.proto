@@ -20,7 +20,7 @@ message ClientAuthorizationResult {
 // The request which user has
 message ClientRequest {
   oneof request {
-    NewJobMessage newJob = 1;
+    ClientNewJobMessage newJob = 1;
     google.protobuf.Empty jobList = 2;
     GetJobLogsRequest jobLog = 3;
     google.protobuf.Empty nodeList = 4;
@@ -71,4 +71,19 @@ message JobData {
 // List of all jobs which master has
 message JobList {
   repeated JobData jobs = 1;
+}
+
+// A job to send to a slave
+message ClientNewJobMessage {
+  // If set, the job contains a payload
+  optional string payload_name = 1;
+}
+
+// ClientJobSentResult is the result of a new job request.
+// It can either fail or succeed.
+message ClientJobSentResult {
+  oneof result {
+    UUID job_id = 1;
+    string error = 2;
+  }
 }

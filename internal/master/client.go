@@ -23,13 +23,23 @@ func (s *Server) handleClient(conn net.Conn) {
 	}
 	// Get type of command
 	switch data := command.Request.(type) {
-	case *proto.ClientRequest_NewJob: // send a job to client
+	case *proto.ClientRequest_NewJob:
+		// At first parse the job
+		jobInfo, err := util.ReadJobRequest(conn, data.NewJob.PayloadName)
+		if err != nil {
+			_ = util.WriteProtobuf(conn, &proto.ClientJobSentResult{Result: &proto.ClientJobSentResult_Error{Error: err.Error()}})
+			log.WithError(err).Warn("invalid job received")
+			return
+		}
+		// Now create an ID and sent it back
 		jobID := uuid.NewString()
-		if err = util.WriteProtobuf(conn, &proto.UUID{Value: jobID}); err != nil {
+		if err = util.WriteProtobuf(conn, &proto.ClientJobSentResult{Result: &proto.ClientJobSentResult_JobId{JobId: &proto.UUID{Value: jobID}}}); err != nil {
 			log.WithError(err).Warn("cannot send back the job ID to client")
 			return
 		}
-		go s.dispatchJob(jobID, data.NewJob)
+		log.WithField("id", jobID).Info("new job")
+		// Dispatch it
+		go s.dispatchJob(jobID, jobInfo)
 		return
 	case *proto.ClientRequest_JobList:
 		err = util.WriteProtobuf(conn, s.getJobList())

@@ -8,7 +8,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"os"
-	"path/filepath"
 	"strconv"
 )
 
@@ -62,9 +61,9 @@ func (m *MasterSettings) PrintJobList() error {
 }
 
 // AddJob will get a job and dispatch it to master
-func (m *MasterSettings) AddJob(configPath, executablePath string, neededMemory, neededDisk *uint64, neededCores *uint32) error {
+func (m *MasterSettings) AddJob(configPath, executablePath string) error {
 	// Read the config file
-	config, err := readJobConfigJson(configPath)
+	config, err := os.ReadFile(configPath)
 	if err != nil {
 		return errors.Wrap(err, "cannot read job config file")
 	}
@@ -76,30 +75,22 @@ func (m *MasterSettings) AddJob(configPath, executablePath string, neededMemory,
 			return errors.Wrap(err, "cannot read the executable")
 		}
 	}
-	// Create job
-	job := &proto.NewJobMessage{
-		Cmd:          config.Cmd,
-		NeededMemory: neededMemory,
-		NeededCores:  neededCores,
-		NeededSpace:  neededDisk,
-	}
-	if executable != nil {
-		job.Program = &proto.PayloadProgram{
-			ProgramBin:  executable,
-			ProgramName: filepath.Base(executablePath),
-		}
-	}
 	// Send job
-	var jobID proto.UUID
-	err = util.RequestWithProtobuf(
-		m.conn,
-		&proto.ClientRequest{Request: &proto.ClientRequest_NewJob{NewJob: job}},
-		&jobID,
-	)
+	err = util.SendJobRequest(m.conn, config, executablePath, executable)
 	if err != nil {
-		return errors.Wrap(err, "cannot dispatch job")
+		return errors.Wrap(err, "cannot send job")
 	}
-	// Show ID
-	fmt.Println("Job dispatched with ID", jobID.Value)
+	// Get the ID
+	var result proto.ClientJobSentResult
+	err = util.ReadProtobuf(m.conn, &result)
+	if err != nil {
+		return errors.Wrap(err, "cannot read job id")
+	}
+	switch data := result.Result.(type) {
+	case *proto.ClientJobSentResult_JobId:
+		fmt.Println("Job dispatched with ID", data.JobId.Value)
+	case *proto.ClientJobSentResult_Error:
+		fmt.Println("Cannot dispatch job:", data.Error)
+	}
 	return nil
 }

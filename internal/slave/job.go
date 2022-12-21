@@ -3,7 +3,6 @@ package slave
 import (
 	"WLF/pkg/proto"
 	"WLF/pkg/util"
-	"github.com/go-faster/errors"
 	log "github.com/sirupsen/logrus"
 	protobuf "google.golang.org/protobuf/proto"
 	"net"
@@ -11,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -51,16 +49,9 @@ func (s *Slave) runJob(id string, requestedJob *proto.NewJobMessage) {
 		return
 	}
 	defer os.RemoveAll(sandboxFolder)
-	// Parse the arguments
-	program, args, err := parseCommand(requestedJob.Cmd)
-	if err != nil {
-		log.WithError(err).Error("cannot parse arguments")
-		s.jobDone(id, job, 0, protobuf.String("cannot parse arguments: "+err.Error()))
-		return
-	}
 	// Save the application in sandbox if needed
-	if requestedJob.Program != nil {
-		err = os.WriteFile(filepath.Join(sandboxFolder, requestedJob.Program.ProgramName), requestedJob.Program.ProgramBin, 0666)
+	if requestedJob.Payload != nil {
+		err = os.WriteFile(filepath.Join(sandboxFolder, requestedJob.Payload.ProgramName), requestedJob.Payload.ProgramBin, 0666)
 		if err != nil {
 			log.WithError(err).Error("cannot save embedded program")
 			s.jobDone(id, job, 0, protobuf.String("cannot save embedded program: "+err.Error()))
@@ -68,7 +59,7 @@ func (s *Slave) runJob(id string, requestedJob *proto.NewJobMessage) {
 		}
 	}
 	// Finally, run the program
-	cmd := exec.Command(program, args...)
+	cmd := exec.Command(requestedJob.ProgramName, requestedJob.Arguments...)
 	cmd.Dir = sandboxFolder
 	cmd.Stdout = &job.stdout
 	cmd.Stderr = &job.stderr
@@ -87,20 +78,6 @@ func (s *Slave) runJob(id string, requestedJob *proto.NewJobMessage) {
 	// Finally!
 	log.WithField("jobID", id).Info("job done")
 	s.jobDone(id, job, 0, nil)
-}
-
-// parseCommand will parse the command given to us from job request
-func parseCommand(cmd string) (program string, arguments []string, err error) {
-	if cmd == "" {
-		return "", nil, errors.New("empty command")
-	}
-	program, args, found := strings.Cut(cmd, " ")
-	if !found {
-		arguments = make([]string, 0)
-		return
-	}
-	arguments = strings.Split(args, " ")
-	return
 }
 
 // jobDone will do anything which is needed after we finish a job.

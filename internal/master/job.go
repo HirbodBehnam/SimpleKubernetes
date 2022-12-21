@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -48,7 +49,7 @@ type job struct {
 func (j job) ToJobData() *proto.JobData {
 	result := &proto.JobData{
 		Id:     &proto.UUID{Value: j.ID},
-		Cmd:    j.JobData.Cmd,
+		Cmd:    strings.Join(append([]string{j.JobData.ProgramName}, j.JobData.Arguments...), " "),
 		NodeId: j.SlaveID,
 	}
 	switch j.Status {
@@ -128,7 +129,7 @@ func (s *Server) tryDispatchJobToSlaves(j job) {
 		delete(s.pendingJobs, j.ID)
 		j.Status = jobStatusRunning
 		j.SlaveID = slave.Id
-		j.JobData.Program = nil // free memory
+		j.JobData.Payload = nil // free memory
 		s.jobs[j.ID] = j
 		log.WithField("jobID", j.ID).WithField("slaveID", slave.Id).Info("job dispatched to slave")
 		break
@@ -152,7 +153,7 @@ func (s *Server) dispatchJobsToSlave(slaveID uint32, slaveAddress string) {
 			delete(s.pendingJobs, j.ID)
 			j.Status = jobStatusRunning
 			j.SlaveID = slaveID
-			j.JobData.Program = nil // free memory
+			j.JobData.Payload = nil // free memory
 			s.jobs[j.ID] = j
 			log.WithField("jobID", j.ID).WithField("slaveID", slaveID).Info("job dispatched to slave")
 		}

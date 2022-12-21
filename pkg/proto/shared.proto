@@ -5,16 +5,18 @@ option go_package = "WLF/pkg/proto";
 
 // A job to send to a slave
 message NewJobMessage {
-  // The command to run on node
-  string cmd = 1;
+  // The program to run on the node
+  string program_name = 1;
+  // The arguments of the program to run
+  repeated string arguments = 2;
   // The executable to send to node
-  optional PayloadProgram program = 2;
+  optional PayloadProgram payload = 3;
   // Needed free memory to run this application
-  optional uint64 needed_memory = 3;
+  uint64 needed_memory = 4;
   // Needed cores to run this application
-  optional uint32 needed_cores = 4;
+  uint32 needed_cores = 5;
   // Needed HDD space to run this application
-  optional uint64 needed_space = 5;
+  uint64 needed_space = 6;
 }
 
 // Jobs might have a program in them

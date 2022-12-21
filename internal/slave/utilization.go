@@ -25,22 +25,17 @@ func getFreeDisk() uint64 {
 // canJobRun will check if a job can be run on this slave or not based on system utilization
 func canJobRun(job *proto.NewJobMessage) bool {
 	// Check CPU
-	if job.NeededCores != nil {
-		if *job.NeededCores > getCPUCores() {
-			return false
-		}
+	if job.NeededCores > getCPUCores() {
+		return false
 	}
+
 	// Check ram
-	if job.NeededMemory != nil {
-		if *job.NeededMemory > getFreeMemory() {
-			return false
-		}
+	if job.NeededMemory > getFreeMemory() {
+		return false
 	}
 	// Check HDD
-	if job.NeededSpace != nil {
-		if *job.NeededSpace > getFreeDisk() {
-			return false
-		}
+	if job.NeededSpace > getFreeDisk() {
+		return false
 	}
 	// Done
 	return true
