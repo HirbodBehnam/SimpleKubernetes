@@ -20,7 +20,7 @@ func NewLineLogger(initial []string) *LineLogger {
 }
 
 func (l *LineLogger) Write(b []byte) (int, error) {
-	lines := strings.Split(string(b), "\n")
+	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
 	l.mu.Lock()
 	for _, line := range lines {
 		if line == "" {

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"encoding/binary"
 	"github.com/go-faster/errors"
 	protobuf "google.golang.org/protobuf/proto"
@@ -18,16 +19,18 @@ func readBigBuffer(r io.Reader) ([]byte, error) {
 	if n != 4 {
 		return nil, errors.New("short read on size")
 	}
+	payloadLength := binary.BigEndian.Uint32(sizeBuffer[:])
 	// Create buffer
-	buffer := make([]byte, binary.BigEndian.Uint32(sizeBuffer[:]))
-	n, err = r.Read(buffer)
+	buffer := new(bytes.Buffer)
+	buffer.Grow(int(payloadLength))
+	n2, err := io.CopyN(buffer, r, int64(payloadLength))
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot read buffer")
 	}
-	if n != len(buffer) {
+	if uint32(n2) != payloadLength || buffer.Len() != int(n2) {
 		return nil, errors.New("short read on buffer")
 	}
-	return buffer, nil
+	return buffer.Bytes(), nil
 }
 
 // writeBigBuffer writes a very big buffer into a writer
@@ -43,11 +46,11 @@ func writeBigBuffer(w io.Writer, buffer []byte) error {
 		return errors.New("short write on size")
 	}
 	// Send the buffer
-	n, err = w.Write(buffer)
+	n2, err := io.Copy(w, bytes.NewReader(buffer))
 	if err != nil {
 		return errors.Wrap(err, "cannot write buffer")
 	}
-	if n != len(buffer) {
+	if int(n2) != len(buffer) {
 		return errors.New("short write on buffer")
 	}
 	return nil
