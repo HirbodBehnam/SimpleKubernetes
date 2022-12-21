@@ -22,11 +22,12 @@ func NewLineLogger(initial []string) *LineLogger {
 func (l *LineLogger) Write(b []byte) (int, error) {
 	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
 	l.mu.Lock()
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		l.lines = append(l.lines, line)
+	if len(l.lines) == 0 {
+		l.lines = make([]string, 1)
+	}
+	if len(lines) > 0 {
+		l.lines[len(l.lines)-1] += lines[0]
+		l.lines = append(l.lines, lines[1:]...)
 	}
 	l.mu.Unlock()
 	return len(b), nil

@@ -73,7 +73,7 @@ func (s *Server) handleClient(conn net.Conn) {
 			// Send the logs
 			output := job.Stdout
 			if data.JobLog.Stderr {
-				output = job.Stdout
+				output = job.Stderr
 			}
 			logs := output.Tail(int(data.JobLog.LineCount))
 			if data.JobLog.Type == proto.GetJobLogsRequestType_HEAD {
